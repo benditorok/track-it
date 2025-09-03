@@ -176,7 +176,8 @@ function App() {
   };
 
   const deleteTracker = async (tracker: TrackerEntry) => {
-    if (!confirm(`Are you sure you want to delete "${tracker.label}" and all its tracking data?`)) {
+    let confirmed = await confirm(`Are you sure you want to delete "${tracker.label}" and all its tracking data?`);
+    if (!confirmed) {
       return;
     }
 
@@ -193,7 +194,8 @@ function App() {
   };
 
   const deleteTrackerLine = async (line: TrackerLine) => {
-    if (!confirm("Are you sure you want to delete this tracking entry?")) {
+    let confirmed = await confirm("Are you sure you want to delete this tracking entry?");
+    if (!confirmed) {
       return;
     }
 
@@ -206,7 +208,8 @@ function App() {
   };
 
   const truncateAllData = async () => {
-    if (!confirm("Are you sure you want to delete ALL tracking data? This action cannot be undone!")) {
+    let confirmed = await confirm("Are you sure you want to delete ALL tracking data? This action cannot be undone!");
+    if (!confirmed) {
       return;
     }
 
