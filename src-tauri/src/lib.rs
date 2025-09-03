@@ -4,8 +4,8 @@ mod domains;
 mod error;
 
 use app::{
-    create_tracker, delete_tracker, delete_tracker_line, get_tracker_lines, get_trackers,
-    initialize_app, start_tracking, stop_tracking, AppState,
+    AppState, create_tracker, delete_tracker, delete_tracker_line, get_tracker_lines, get_trackers,
+    initialize_app, start_tracking, stop_tracking,
 };
 #[cfg(debug_assertions)]
 use tauri::Manager;
@@ -24,12 +24,6 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .manage(AppState::default())
-        .setup(|app| {
-            #[cfg(debug_assertions)]
-            app.get_webview_window("main").unwrap().open_devtools();
-
-            Ok(())
-        })
         .invoke_handler(tauri::generate_handler![
             greet,
             initialize_app,
