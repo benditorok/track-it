@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./App.css";
 
 interface TrackerEntry {
@@ -33,6 +34,43 @@ function App() {
   const [trackerLines, setTrackerLines] = useState<TrackerLine[]>([]);
   const [newLineDesc, setNewLineDesc] = useState("");
   const [activeLines, setActiveLines] = useState<TrackerLine[]>([]);
+
+  // Live duration updates
+  const [liveDurations, setLiveDurations] = useState<Map<number, string>>(new Map());
+
+  // Update live durations every second for active lines
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newDurations = new Map<number, string>();
+      activeLines.forEach((line) => {
+        const duration = formatDuration(line.started_at, null);
+        newDurations.set(line.id, duration);
+      });
+      setLiveDurations(newDurations);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeLines]);
+
+  // Handle window close event to stop active tracking
+  useEffect(() => {
+    const handleWindowClose = async () => {
+      try {
+        await invoke("stop_all_active_tracking");
+      } catch (err) {
+        console.error("Failed to stop active tracking on close:", err);
+      }
+    };
+
+    const appWindow = getCurrentWindow();
+    const unlisten = appWindow.onCloseRequested(async () => {
+      await handleWindowClose();
+    });
+
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
 
   // Initialize the app
   useEffect(() => {
@@ -151,6 +189,25 @@ function App() {
     }
   };
 
+  const truncateAllData = async () => {
+    if (!confirm("Are you sure you want to delete ALL tracking data? This action cannot be undone!")) {
+      return;
+    }
+
+    try {
+      await invoke("truncate_tables");
+      // Reload data after truncation
+      setTrackers([]);
+      setTrackerLines([]);
+      setSelectedTracker(null);
+      setActiveLines([]);
+      await loadTrackers();
+      await loadTrackerLines();
+    } catch (err) {
+      setError(err as string);
+    }
+  };
+
   const formatDuration = (startedAt: string, endedAt: string | null) => {
     const start = new Date(startedAt);
     const end = endedAt ? new Date(endedAt) : new Date();
@@ -213,6 +270,11 @@ function App() {
       <header>
         <h1>🕐 Time Tracker</h1>
         <p>Track your time efficiently with organized trackers</p>
+        <div className="header-actions">
+          <button className="danger-btn" onClick={truncateAllData} title="Delete all tracking data">
+            🗑️ Clear All Data
+          </button>
+        </div>
       </header>
 
       <div className="app-layout">
@@ -271,7 +333,9 @@ function App() {
                     <div className="tracker-stats">
                       <span className="stat">📊 {lines.length} entries</span>
                       {activeLine && (
-                        <span className="stat active">⏱️ Running: {formatDuration(activeLine.started_at, null)}</span>
+                        <span className="stat active">
+                          ⏱️ Running: {liveDurations.get(activeLine.id) || formatDuration(activeLine.started_at, null)}
+                        </span>
                       )}
                     </div>
 
@@ -353,16 +417,23 @@ function App() {
                                 <span className="running">Running...</span>
                               )}
                             </div>
-
-                            {line.ended_at && (
-                              <div className="duration">Duration: {formatDuration(line.started_at, line.ended_at)}</div>
-                            )}
+                            <div className="duration">
+                              Duration:{" "}
+                              {line.ended_at
+                                ? formatDuration(line.started_at, line.ended_at)
+                                : liveDurations.get(line.id) || formatDuration(line.started_at, null)}
+                            </div>
                           </div>
 
                           {!line.ended_at && (
-                            <button className="stop-btn" onClick={() => stopTracking(line)}>
-                              Stop Tracking
-                            </button>
+                            <div className="active-line-controls">
+                              <div className="live-duration">
+                                🔴 Live: {liveDurations.get(line.id) || formatDuration(line.started_at, null)}
+                              </div>
+                              <button className="stop-btn" onClick={() => stopTracking(line)}>
+                                Stop Tracking
+                              </button>
+                            </div>
                           )}
                         </div>
                       ))
