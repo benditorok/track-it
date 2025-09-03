@@ -7,8 +7,6 @@ use app::{
     AppState, create_tracker, delete_tracker, delete_tracker_line, get_tracker_lines, get_trackers,
     initialize_app, start_tracking, stop_all_active_tracking, stop_tracking, truncate_tables,
 };
-#[cfg(debug_assertions)]
-use tauri::Manager;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
