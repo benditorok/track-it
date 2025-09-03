@@ -1,6 +1,6 @@
 use crate::domains::tracker::{
-    domain::model::{TrackerEntry, TrackerEntryLine},
     TrackerRepositoryTrait,
+    domain::model::{TrackerEntry, TrackerEntryLine},
 };
 use sqlx::SqlitePool;
 use std::future::Future;
