@@ -1,12 +1,15 @@
 use sqlx::{migrate::MigrateDatabase as _, sqlite::SqliteConnectOptions, Sqlite, SqlitePool};
-use std::env;
+use std::path::PathBuf;
+use tauri::{AppHandle, Manager};
 
-pub async fn initialize_database() -> Result<SqlitePool, Box<dyn std::error::Error + Send + Sync>> {
-    let (database_url, database_file_path) = get_database_path()?;
+pub async fn initialize_database(
+    app_handle: &AppHandle,
+) -> Result<SqlitePool, Box<dyn std::error::Error + Send + Sync>> {
+    let (database_url, database_file_path) = get_database_path(app_handle)?;
 
     // Check if database exists, if not create it
     if !Sqlite::database_exists(&database_url).await? {
-        log::info!("Creating database at: {database_file_path}",);
+        log::info!("Creating database at: {}", database_file_path.display());
         Sqlite::create_database(&database_url).await?;
     }
 
@@ -25,21 +28,24 @@ pub async fn initialize_database() -> Result<SqlitePool, Box<dyn std::error::Err
     Ok(pool)
 }
 
-fn get_database_path() -> Result<(String, String), Box<dyn std::error::Error + Send + Sync>> {
-    // Get the directory where the executable is located
-    let exe_path = env::current_exe()?;
-    let exe_dir = exe_path
-        .parent()
-        .ok_or("Could not determine executable directory")?;
+fn get_database_path(
+    app_handle: &AppHandle,
+) -> Result<(String, PathBuf), Box<dyn std::error::Error + Send + Sync>> {
+    // Get the app data directory from Tauri
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to get app data directory: {}", e))?;
 
-    // Create the database path next to the executable
-    let db_path = exe_dir.join("trackers.db");
+    // Ensure the app data directory exists
+    std::fs::create_dir_all(&app_data_dir)
+        .map_err(|e| format!("Failed to create app data directory: {}", e))?;
 
-    // Convert to string
-    let db_file_path = db_path.to_string_lossy().to_string();
+    // Create the database path in the app data directory
+    let db_path = app_data_dir.join("trackers.db");
 
     // Create URL format for SQLite
-    let db_url = format!("sqlite://{db_file_path}",);
+    let db_url = format!("sqlite://{}", db_path.display());
 
-    Ok((db_url, db_file_path))
+    Ok((db_url, db_path))
 }

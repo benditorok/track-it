@@ -1,7 +1,8 @@
 use crate::domains::tracker::{TrackerEntry, TrackerEntryLine};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrackerEntryCreateDto {
     pub label: String,
     pub created_at: DateTime<Utc>,
@@ -28,7 +29,7 @@ impl From<TrackerEntry> for TrackerEntryCreateDto {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrackerEntryViewDto {
     pub id: i64,
     pub label: String,
@@ -58,7 +59,7 @@ impl From<TrackerEntry> for TrackerEntryViewDto {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrackerEntryUpdateDto {
     pub id: i64,
     pub label: String,
@@ -85,7 +86,7 @@ impl From<TrackerEntry> for TrackerEntryUpdateDto {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TrackerEntryDeleteDto {
     pub id: i64,
 }
@@ -96,7 +97,7 @@ impl From<TrackerEntry> for TrackerEntryDeleteDto {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrackerEntryLineCreateDto {
     pub entry_id: i64,
     pub desc: String,
@@ -129,7 +130,7 @@ impl From<TrackerEntryLine> for TrackerEntryLineCreateDto {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrackerEntryLineViewDto {
     pub id: i64,
     pub entry_id: i64,
@@ -168,7 +169,7 @@ impl From<TrackerEntryLine> for TrackerEntryLineViewDto {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrackerEntryLineUpdateDto {
     pub id: i64,
     pub entry_id: i64,
@@ -204,7 +205,7 @@ impl From<TrackerEntryLine> for TrackerEntryLineUpdateDto {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TrackerEntryLineDeleteDto {
     pub id: i64,
 }
