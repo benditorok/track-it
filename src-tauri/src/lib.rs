@@ -5,7 +5,7 @@ mod error;
 
 use app::{
     AppState, create_tracker, delete_tracker, delete_tracker_line, get_tracker_lines, get_trackers,
-    initialize_app, start_tracking, stop_tracking,
+    initialize_app, start_tracking, stop_all_active_tracking, stop_tracking, truncate_tables,
 };
 #[cfg(debug_assertions)]
 use tauri::Manager;
@@ -33,7 +33,9 @@ pub fn run() {
             start_tracking,
             stop_tracking,
             delete_tracker,
-            delete_tracker_line
+            delete_tracker_line,
+            truncate_tables,
+            stop_all_active_tracking
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,4 +1,4 @@
-use sqlx::{migrate::MigrateDatabase as _, sqlite::SqliteConnectOptions, Sqlite, SqlitePool};
+use sqlx::{Sqlite, SqlitePool, migrate::MigrateDatabase as _, sqlite::SqliteConnectOptions};
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 
@@ -48,4 +48,30 @@ fn get_database_path(
     let db_url = format!("sqlite://{}", db_path.display());
 
     Ok((db_url, db_path))
+}
+
+pub async fn truncate_tables(
+    pool: &SqlitePool,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    // Purge the database by deleting all data from tables in correct order
+    log::info!("Truncating tables...");
+
+    // Delete tracker lines first due to foreign key constraints
+    sqlx::query("DELETE FROM tracker_entry_line")
+        .execute(pool)
+        .await?;
+    sqlx::query("DELETE FROM tracker_entry")
+        .execute(pool)
+        .await?;
+
+    // Reset auto-increment counters
+    sqlx::query(
+        "DELETE FROM sqlite_sequence WHERE name IN ('tracker_entry', 'tracker_entry_line')",
+    )
+    .execute(pool)
+    .await?;
+
+    log::info!("Tables truncated successfully");
+
+    Ok(())
 }
