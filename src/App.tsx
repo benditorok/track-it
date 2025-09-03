@@ -354,7 +354,9 @@ function App() {
                               )}
                             </div>
 
-                            <div className="duration">Duration: {formatDuration(line.started_at, line.ended_at)}</div>
+                            {line.ended_at && (
+                              <div className="duration">Duration: {formatDuration(line.started_at, line.ended_at)}</div>
+                            )}
                           </div>
 
                           {!line.ended_at && (
