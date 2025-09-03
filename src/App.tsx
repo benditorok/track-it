@@ -436,12 +436,15 @@ function App() {
                                 <span className="running">Running...</span>
                               )}
                             </div>
-                            <div className="duration">
-                              Duration:{" "}
-                              {line.ended_at
-                                ? formatDuration(line.started_at, line.ended_at)
-                                : liveDurations.get(line.id) || formatDuration(line.started_at, null)}
-                            </div>
+
+                            {line.ended_at && (
+                              <div className="duration">
+                                Duration:{" "}
+                                {line.ended_at
+                                  ? formatDuration(line.started_at, line.ended_at)
+                                  : liveDurations.get(line.id) || formatDuration(line.started_at, null)}
+                              </div>
+                            )}
                           </div>
 
                           {!line.ended_at && (
