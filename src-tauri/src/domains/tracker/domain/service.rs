@@ -1,4 +1,11 @@
-use crate::{domains::tracker::dto::tracker_dto::{TrackerEntryCreateDto, TrackerEntryViewDto, TrackerEntryLineViewDto, TrackerEntryLineCreateDto, TrackerEntryLineUpdateDto, TrackerEntryLineDeleteDto, TrackerEntryDeleteDto}, error::AppError};
+use crate::{
+    domains::tracker::dto::tracker_dto::{
+        TrackerEntryCreateDto, TrackerEntryDeleteDto, TrackerEntryLineCreateDto,
+        TrackerEntryLineDeleteDto, TrackerEntryLineUpdateDto, TrackerEntryLineViewDto,
+        TrackerEntryViewDto,
+    },
+    error::AppError,
+};
 use sqlx::SqlitePool;
 use std::{pin::Pin, sync::Arc};
 

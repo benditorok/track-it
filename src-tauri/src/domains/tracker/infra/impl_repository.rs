@@ -2,8 +2,8 @@ use sqlx::SqlitePool;
 use std::future::Future;
 
 use crate::domains::tracker::{
-    TrackerRepositoryTrait,
     domain::model::{TrackerEntry, TrackerEntryLine},
+    TrackerRepositoryTrait,
 };
 
 pub struct TrackerRepository;
