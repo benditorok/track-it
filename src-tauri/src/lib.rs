@@ -1,3 +1,10 @@
+mod app;
+pub use app::TrackerApp;
+
+pub mod database;
+pub mod domains;
+pub mod error;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
