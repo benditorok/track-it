@@ -289,11 +289,6 @@ function App() {
       <header>
         <h1>🕐 Time Tracker</h1>
         <p>Track your time efficiently with organized trackers</p>
-        <div className="header-actions">
-          <button className="danger-btn" onClick={truncateAllData} title="Delete all tracking data">
-            🗑️ Clear All Data
-          </button>
-        </div>
       </header>
 
       <div className="app-layout">
@@ -470,6 +465,12 @@ function App() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="bottom-pane-actions ">
+        <button className="danger-btn" onClick={truncateAllData} title="Delete all tracking data">
+          🗑️ Clear All Data
+        </button>
       </div>
     </main>
   );
