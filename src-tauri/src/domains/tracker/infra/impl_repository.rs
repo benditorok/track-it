@@ -1,10 +1,9 @@
-use sqlx::SqlitePool;
-use std::future::Future;
-
 use crate::domains::tracker::{
     domain::model::{TrackerEntry, TrackerEntryLine},
     TrackerRepositoryTrait,
 };
+use sqlx::SqlitePool;
+use std::future::Future;
 
 pub struct TrackerRepository;
 
@@ -17,8 +16,8 @@ impl TrackerRepositoryTrait for TrackerRepository {
         Box::pin(async move {
             let entry = sqlx::query_as::<_, TrackerEntry>(
                 r#"
-                INSERT INTO tracker_entry (label, created_at, updated_at, is_deleted) 
-                VALUES (?, ?, ?, ?) 
+                INSERT INTO tracker_entry (label, created_at, updated_at, is_deleted)
+                VALUES (?, ?, ?, ?)
                 RETURNING id, label, created_at, updated_at, is_deleted"#,
             )
             .bind(&entry.label)
@@ -42,7 +41,7 @@ impl TrackerRepositoryTrait for TrackerRepository {
             let entry = sqlx::query_as::<_, TrackerEntry>(
                 r#"
                 SELECT id, label, created_at, updated_at, is_deleted
-                FROM tracker_entry 
+                FROM tracker_entry
                 WHERE id = ? AND is_deleted = 0
                 "#,
             )
@@ -62,8 +61,8 @@ impl TrackerRepositoryTrait for TrackerRepository {
             let entries = sqlx::query_as::<_, TrackerEntry>(
                 r#"
                 SELECT id, label, created_at, updated_at, is_deleted
-                FROM tracker_entry 
-                WHERE is_deleted = 0 
+                FROM tracker_entry
+                WHERE is_deleted = 0
                 ORDER BY created_at DESC
                 "#,
             )
@@ -82,9 +81,9 @@ impl TrackerRepositoryTrait for TrackerRepository {
         Box::pin(async move {
             let entry = sqlx::query_as::<_, TrackerEntry>(
                 r#"
-                UPDATE tracker_entry 
-                SET label = ?, updated_at = ? 
-                WHERE id = ? 
+                UPDATE tracker_entry
+                SET label = ?, updated_at = ?
+                WHERE id = ?
                 RETURNING id, label, created_at, updated_at, is_deleted
                 "#,
             )
@@ -106,8 +105,8 @@ impl TrackerRepositoryTrait for TrackerRepository {
         Box::pin(async move {
             sqlx::query(
                 r#"
-                UPDATE tracker_entry 
-                SET is_deleted = 1 
+                UPDATE tracker_entry
+                SET is_deleted = 1
                 WHERE id = ? AND is_deleted = 0
                 "#,
             )
@@ -127,8 +126,8 @@ impl TrackerRepositoryTrait for TrackerRepository {
         Box::pin(async move {
             let lines = sqlx::query_as::<_, TrackerEntryLine>(
                 r#"
-                INSERT INTO tracker_entry_line (entry_id, desc, started_at, ended_at, created_at, updated_at, is_deleted) 
-                VALUES (?, ?, ?, ?, ?, ?, ?) 
+                INSERT INTO tracker_entry_line (entry_id, desc, started_at, ended_at, created_at, updated_at, is_deleted)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 RETURNING id, entry_id, desc, started_at, ended_at, created_at, updated_at, is_deleted
                 "#
             )
@@ -220,9 +219,9 @@ impl TrackerRepositoryTrait for TrackerRepository {
         Box::pin(async move {
             let line = sqlx::query_as::<_, TrackerEntryLine>(
                 r#"
-                UPDATE tracker_entry_line 
-                SET desc = ?, started_at = ?, ended_at = ?, updated_at = ? 
-                WHERE id = ? 
+                UPDATE tracker_entry_line
+                SET desc = ?, started_at = ?, ended_at = ?, updated_at = ?
+                WHERE id = ?
                 RETURNING id, entry_id, desc, started_at, ended_at, created_at, updated_at, is_deleted
                 "#,
             )

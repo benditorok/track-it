@@ -1,6 +1,3 @@
-use sqlx::SqlitePool;
-use std::sync::Arc;
-
 use crate::{
     domains::tracker::{
         dto::tracker_dto::{
@@ -13,6 +10,9 @@ use crate::{
     },
     error::AppError,
 };
+use sqlx::SqlitePool;
+use std::{future::Future, sync::Arc};
+
 pub struct TrackerService {
     pool: SqlitePool,
     repo: Arc<dyn TrackerRepositoryTrait + Send + Sync>,

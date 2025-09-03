@@ -7,7 +7,7 @@ use crate::{
     error::AppError,
 };
 use sqlx::SqlitePool;
-use std::{pin::Pin, sync::Arc};
+use std::{future::Future, pin::Pin, sync::Arc};
 
 pub trait TrackerServiceTrait: Send + Sync {
     fn create_service(pool: SqlitePool) -> Arc<dyn TrackerServiceTrait>
