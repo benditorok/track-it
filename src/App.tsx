@@ -2,7 +2,38 @@ import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm } from "@tauri-apps/plugin-dialog";
-import "./App.css";
+import {
+  Layout,
+  Card,
+  Button,
+  Input,
+  Typography,
+  Space,
+  List,
+  Badge,
+  Tag,
+  Empty,
+  Spin,
+  Alert,
+  Row,
+  Col,
+  Divider,
+  Tooltip,
+  Modal,
+  message,
+} from "antd";
+import {
+  PlusOutlined,
+  PlayCircleOutlined,
+  StopOutlined,
+  DeleteOutlined,
+  ClockCircleOutlined,
+  FieldTimeOutlined,
+  ClearOutlined,
+} from "@ant-design/icons";
+
+const { Header, Content } = Layout;
+const { Title, Text } = Typography;
 
 interface TrackerEntry {
   id: number;
@@ -140,6 +171,7 @@ function App() {
       });
       setTrackers((prev) => [...prev, newTracker]);
       setNewTrackerLabel("");
+      message.success(`Tracker "${newTracker.label}" created successfully`);
     } catch (err) {
       setError(err as string);
     }
@@ -155,6 +187,7 @@ function App() {
       });
       setTrackerLines((prev) => [...prev, newLine]);
       setNewLineDesc("");
+      message.success("Tracking started successfully");
     } catch (err) {
       setError(err as string);
     }
@@ -170,61 +203,77 @@ function App() {
       });
 
       setTrackerLines((prev) => prev.map((l) => (l.id === updatedLine.id ? updatedLine : l)));
+      message.success("Tracking stopped successfully");
     } catch (err) {
       setError(err as string);
     }
   };
 
   const deleteTracker = async (tracker: TrackerEntry) => {
-    let confirmed = await confirm(`Are you sure you want to delete "${tracker.label}" and all its tracking data?`);
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await invoke("delete_tracker", { trackerId: tracker.id });
-      setTrackers((prev) => prev.filter((t) => t.id !== tracker.id));
-      setTrackerLines((prev) => prev.filter((l) => l.entry_id !== tracker.id));
-      if (selectedTracker?.id === tracker.id) {
-        setSelectedTracker(null);
-      }
-    } catch (err) {
-      setError(err as string);
-    }
+    Modal.confirm({
+      title: "Delete Tracker",
+      content: `Are you sure you want to delete "${tracker.label}" and all its tracking data?`,
+      okText: "Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: async () => {
+        try {
+          await invoke("delete_tracker", { trackerId: tracker.id });
+          setTrackers((prev) => prev.filter((t) => t.id !== tracker.id));
+          setTrackerLines((prev) => prev.filter((l) => l.entry_id !== tracker.id));
+          if (selectedTracker?.id === tracker.id) {
+            setSelectedTracker(null);
+          }
+          message.success("Tracker deleted successfully");
+        } catch (err) {
+          setError(err as string);
+        }
+      },
+    });
   };
 
   const deleteTrackerLine = async (line: TrackerLine) => {
-    let confirmed = await confirm("Are you sure you want to delete this tracking entry?");
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await invoke("delete_tracker_line", { lineId: line.id });
-      setTrackerLines((prev) => prev.filter((l) => l.id !== line.id));
-    } catch (err) {
-      setError(err as string);
-    }
+    Modal.confirm({
+      title: "Delete Tracking Entry",
+      content: "Are you sure you want to delete this tracking entry?",
+      okText: "Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: async () => {
+        try {
+          await invoke("delete_tracker_line", { lineId: line.id });
+          setTrackerLines((prev) => prev.filter((l) => l.id !== line.id));
+          message.success("Tracking entry deleted successfully");
+        } catch (err) {
+          setError(err as string);
+        }
+      },
+    });
   };
 
   const truncateAllData = async () => {
-    let confirmed = await confirm("Are you sure you want to delete ALL tracking data? This action cannot be undone!");
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await invoke("truncate_tables");
-      // Reload data after truncation
-      setTrackers([]);
-      setTrackerLines([]);
-      setSelectedTracker(null);
-      setActiveLines([]);
-      await loadTrackers();
-      await loadTrackerLines();
-    } catch (err) {
-      setError(err as string);
-    }
+    Modal.confirm({
+      title: "Clear All Data",
+      content: "Are you sure you want to delete ALL tracking data? This action cannot be undone!",
+      okText: "Delete All",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk: async () => {
+        try {
+          await invoke("truncate_tables");
+          // Reload data after truncation
+          setTrackers([]);
+          setTrackerLines([]);
+          setSelectedTracker(null);
+          setActiveLines([]);
+          await loadTrackers();
+          await loadTrackerLines();
+          message.success("All data cleared successfully");
+        } catch (err) {
+          setError(err as string);
+        }
+      },
+    });
   };
 
   const formatDuration = (startedAt: string, endedAt: string | null) => {
@@ -252,227 +301,354 @@ function App() {
 
   if (loading) {
     return (
-      <main className="container">
-        <div className="loading">
-          <h2>Initializing Time Tracker...</h2>
-          <div className="spinner"></div>
-        </div>
-      </main>
+      <Layout style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Space direction="vertical" align="center" size="large">
+          <Spin size="large" />
+          <Title level={3}>Initializing Time Tracker...</Title>
+        </Space>
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <main className="container">
-        <div className="error">
-          <h2>Error</h2>
-          <p>{error}</p>
-          <button onClick={() => window.location.reload()}>Retry</button>
-        </div>
-      </main>
+      <Layout style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Space direction="vertical" align="center" size="large">
+          <Alert message="Error" description={error} type="error" showIcon />
+          <Button type="primary" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </Space>
+      </Layout>
     );
   }
 
   if (!initialized) {
     return (
-      <main className="container">
-        <div className="error">
-          <h2>Not Initialized</h2>
-          <p>Failed to initialize the application</p>
-        </div>
-      </main>
+      <Layout style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Alert message="Not Initialized" description="Failed to initialize the application" type="error" showIcon />
+      </Layout>
     );
   }
 
   return (
-    <main className="container">
-      <header>
-        <h1>🕐 Time Tracker</h1>
-        <p>Track your time efficiently with organized trackers</p>
-      </header>
+    <Layout style={{ minHeight: "100vh", height: "100%" }}>
+      <style>
+        {`
+          @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+          }
 
-      <div className="app-layout">
-        {/* Left Panel - Trackers */}
-        <div className="trackers-panel">
-          <div className="panel-header">
-            <h2>Trackers</h2>
-          </div>
+          @media (max-width: 768px) {
+            .ant-layout-content {
+              padding: 8px !important;
+            }
+            .ant-row {
+              flex-direction: column !important;
+            }
+            .ant-col {
+              width: 100% !important;
+              margin-bottom: 16px !important;
+            }
+          }
+        `}
+      </style>
+      <Header style={{ background: "#fff", padding: "0 24px", borderBottom: "1px solid #f0f0f0" }}>
+        <Space align="center" style={{ height: "100%" }}>
+          <ClockCircleOutlined style={{ fontSize: "24px", color: "#1890ff" }} />
+          <Title level={2} style={{ margin: 0, color: "#1890ff" }}>
+            Time Tracker
+          </Title>
+          <Text type="secondary">Track your time efficiently with organized trackers</Text>
+        </Space>
+      </Header>
 
-          <div className="create-tracker">
-            <div className="input-group">
-              <input
-                type="text"
-                placeholder="Enter tracker name..."
-                value={newTrackerLabel}
-                onChange={(e) => setNewTrackerLabel(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && createTracker()}
-              />
-              <button onClick={createTracker} disabled={!newTrackerLabel.trim()}>
-                Create
-              </button>
-            </div>
-          </div>
-
-          <div className="trackers-list">
-            {trackers.length === 0 ? (
-              <div className="empty-state">
-                <p>No trackers yet. Create your first tracker above!</p>
-              </div>
-            ) : (
-              trackers.map((tracker) => {
-                const lines = getTrackerLines(tracker.id);
-                const activeLine = getActiveLineForTracker(tracker.id);
-                const isSelected = selectedTracker?.id === tracker.id;
-
-                return (
-                  <div
-                    key={tracker.id}
-                    className={`tracker-card ${isSelected ? "selected" : ""} ${activeLine ? "active" : ""}`}
-                    onClick={() => setSelectedTracker(tracker)}
+      <Content
+        style={{
+          padding: "16px",
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "calc(100vh - 64px)",
+          overflow: "auto",
+        }}
+      >
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <Row gutter={[16, 16]} style={{ flex: 1, minHeight: 0 }}>
+            {/* Left Panel - Trackers */}
+            <Col xs={24} lg={10} style={{ height: "100%", minHeight: "300px" }}>
+              <Card
+                title="Trackers"
+                style={{ height: "100%", display: "flex", flexDirection: "column" }}
+                bodyStyle={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "16px" }}
+              >
+                <Space.Compact style={{ width: "100%", marginBottom: 16 }}>
+                  <Input
+                    placeholder="Enter tracker name..."
+                    value={newTrackerLabel}
+                    onChange={(e) => setNewTrackerLabel(e.target.value)}
+                    onPressEnter={createTracker}
+                  />
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={createTracker}
+                    disabled={!newTrackerLabel.trim()}
                   >
-                    <div className="tracker-header">
-                      <h3>{tracker.label}</h3>
-                      <button
-                        className="delete-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteTracker(tracker);
-                        }}
-                        title="Delete tracker"
-                      >
-                        ✕
-                      </button>
-                    </div>
+                    Create
+                  </Button>
+                </Space.Compact>
 
-                    <div className="tracker-stats">
-                      <span className="stat">📊 {lines.length} entries</span>
-                      {activeLine && (
-                        <span className="stat active">
-                          ⏱️ Running: {liveDurations.get(activeLine.id) || formatDuration(activeLine.started_at, null)}
-                        </span>
-                      )}
-                    </div>
-
-                    {activeLine && (
-                      <div className="active-task">
-                        <p>"{activeLine.desc}"</p>
-                        <button
-                          className="stop-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            stopTracking(activeLine);
-                          }}
-                        >
-                          Stop
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* Right Panel - Selected Tracker Details */}
-        <div className="details-panel">
-          {selectedTracker ? (
-            <>
-              <div className="panel-header">
-                <h2>{selectedTracker.label}</h2>
-                <span className="tracker-id">ID: {selectedTracker.id}</span>
-              </div>
-
-              {/* Start New Tracking */}
-              {!getActiveLineForTracker(selectedTracker.id) && (
-                <div className="start-tracking">
-                  <h3>Start New Task</h3>
-                  <div className="input-group">
-                    <input
-                      type="text"
-                      placeholder="What are you working on?"
-                      value={newLineDesc}
-                      onChange={(e) => setNewLineDesc(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && startTracking()}
-                    />
-                    <button onClick={startTracking} disabled={!newLineDesc.trim()}>
-                      Start
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Tracking History */}
-              <div className="tracking-history">
-                <h3>Tracking History</h3>
-                <div className="lines-list">
-                  {getTrackerLines(selectedTracker.id).length === 0 ? (
-                    <div className="empty-state">
-                      <p>No tracking entries yet. Start tracking above!</p>
-                    </div>
+                <div style={{ flex: 1, overflow: "auto", minHeight: 0 }}>
+                  {trackers.length === 0 ? (
+                    <Empty description="No trackers yet. Create your first tracker above!" />
                   ) : (
-                    getTrackerLines(selectedTracker.id)
-                      .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
-                      .map((line) => (
-                        <div key={line.id} className={`line-card ${!line.ended_at ? "active" : ""}`}>
-                          <div className="line-header">
-                            <h4>{line.desc}</h4>
-                            <button className="delete-btn" onClick={() => deleteTrackerLine(line)} title="Delete entry">
-                              ✕
-                            </button>
-                          </div>
+                    <List
+                      dataSource={trackers}
+                      renderItem={(tracker) => {
+                        const lines = getTrackerLines(tracker.id);
+                        const activeLine = getActiveLineForTracker(tracker.id);
+                        const isSelected = selectedTracker?.id === tracker.id;
 
-                          <div className="line-details">
-                            <div className="time-info">
-                              <span>Started: {formatTime(line.started_at)}</span>
-                              {line.ended_at ? (
-                                <span>Ended: {formatTime(line.ended_at)}</span>
-                              ) : (
-                                <span className="running">Running...</span>
-                              )}
-                            </div>
+                        return (
+                          <List.Item style={{ padding: 0, marginBottom: 8 }}>
+                            <Card
+                              size="small"
+                              style={{
+                                width: "100%",
+                                cursor: "pointer",
+                                border: isSelected ? "2px solid #1890ff" : activeLine ? "2px solid #52c41a" : undefined,
+                                backgroundColor: isSelected ? "#f6ffed" : activeLine ? "#f6ffed" : undefined,
+                              }}
+                              onClick={() => setSelectedTracker(tracker)}
+                              extra={
+                                <Tooltip title="Delete tracker">
+                                  <Button
+                                    type="text"
+                                    size="small"
+                                    icon={<DeleteOutlined />}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteTracker(tracker);
+                                    }}
+                                    danger
+                                  />
+                                </Tooltip>
+                              }
+                            >
+                              <Space direction="vertical" style={{ width: "100%" }} size="small">
+                                <Title level={5} style={{ margin: 0 }}>
+                                  {tracker.label}
+                                </Title>
 
-                            {line.ended_at && (
-                              <div className="duration">
-                                Duration:{" "}
-                                {line.ended_at
-                                  ? formatDuration(line.started_at, line.ended_at)
-                                  : liveDurations.get(line.id) || formatDuration(line.started_at, null)}
-                              </div>
-                            )}
-                          </div>
+                                <Space wrap>
+                                  <Tag icon={<FieldTimeOutlined />}>{lines.length} entries</Tag>
+                                  {activeLine && (
+                                    <Tag
+                                      color="green"
+                                      icon={<ClockCircleOutlined />}
+                                      style={{ animation: "pulse 2s infinite" }}
+                                    >
+                                      Running:{" "}
+                                      {liveDurations.get(activeLine.id) || formatDuration(activeLine.started_at, null)}
+                                    </Tag>
+                                  )}
+                                </Space>
 
-                          {!line.ended_at && (
-                            <div className="active-line-controls">
-                              <div className="live-duration">
-                                🔴 Live: {liveDurations.get(line.id) || formatDuration(line.started_at, null)}
-                              </div>
-                              <button className="stop-btn" onClick={() => stopTracking(line)}>
-                                Stop Tracking
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))
+                                {activeLine && (
+                                  <Card
+                                    size="small"
+                                    style={{ backgroundColor: "#f6ffed", border: "1px solid #b7eb8f" }}
+                                  >
+                                    <Space direction="vertical" style={{ width: "100%" }} size="small">
+                                      <Text italic>"{activeLine.desc}"</Text>
+                                      <Button
+                                        size="small"
+                                        type="primary"
+                                        icon={<StopOutlined />}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          stopTracking(activeLine);
+                                        }}
+                                      >
+                                        Stop
+                                      </Button>
+                                    </Space>
+                                  </Card>
+                                )}
+                              </Space>
+                            </Card>
+                          </List.Item>
+                        );
+                      }}
+                    />
                   )}
                 </div>
-              </div>
-            </>
-          ) : (
-            <div className="empty-state">
-              <h2>Select a Tracker</h2>
-              <p>Choose a tracker from the left panel to view details and start tracking time.</p>
-            </div>
-          )}
-        </div>
-      </div>
+              </Card>
+            </Col>
 
-      <div className="bottom-pane-actions ">
-        <button className="danger-btn" onClick={truncateAllData} title="Delete all tracking data">
-          🗑️ Clear All Data
-        </button>
-      </div>
-    </main>
+            {/* Right Panel - Selected Tracker Details */}
+            <Col xs={24} lg={14} style={{ height: "100%", minHeight: "400px" }}>
+              <Card
+                title={
+                  selectedTracker ? (
+                    <Space>
+                      <span>{selectedTracker.label}</span>
+                      <Badge count={selectedTracker.id} color="blue" />
+                    </Space>
+                  ) : (
+                    "Select a Tracker"
+                  )
+                }
+                style={{ height: "100%", display: "flex", flexDirection: "column" }}
+                bodyStyle={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "16px" }}
+              >
+                {selectedTracker ? (
+                  <>
+                    {/* Start New Tracking */}
+                    {!getActiveLineForTracker(selectedTracker.id) && (
+                      <>
+                        <Title level={4}>Start New Task</Title>
+                        <Space.Compact style={{ width: "100%", marginBottom: 24 }}>
+                          <Input
+                            placeholder="What are you working on?"
+                            value={newLineDesc}
+                            onChange={(e) => setNewLineDesc(e.target.value)}
+                            onPressEnter={startTracking}
+                          />
+                          <Button
+                            type="primary"
+                            icon={<PlayCircleOutlined />}
+                            onClick={startTracking}
+                            disabled={!newLineDesc.trim()}
+                          >
+                            Start
+                          </Button>
+                        </Space.Compact>
+                        <Divider />
+                      </>
+                    )}
+
+                    {/* Tracking History */}
+                    <Title level={4}>Tracking History</Title>
+                    <div style={{ flex: 1, overflow: "auto", minHeight: 0 }}>
+                      {getTrackerLines(selectedTracker.id).length === 0 ? (
+                        <Empty description="No tracking entries yet. Start tracking above!" />
+                      ) : (
+                        <List
+                          dataSource={getTrackerLines(selectedTracker.id).sort(
+                            (a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime(),
+                          )}
+                          renderItem={(line) => (
+                            <List.Item>
+                              <Card
+                                size="small"
+                                style={{
+                                  width: "100%",
+                                  border: !line.ended_at ? "2px solid #52c41a" : undefined,
+                                  backgroundColor: !line.ended_at ? "#f6ffed" : undefined,
+                                }}
+                                extra={
+                                  <Tooltip title="Delete entry">
+                                    <Button
+                                      type="text"
+                                      size="small"
+                                      icon={<DeleteOutlined />}
+                                      onClick={() => deleteTrackerLine(line)}
+                                      danger
+                                    />
+                                  </Tooltip>
+                                }
+                              >
+                                <Space direction="vertical" style={{ width: "100%" }} size="small">
+                                  <Title level={5} style={{ margin: 0 }}>
+                                    {line.desc}
+                                  </Title>
+
+                                  <Space direction="vertical" size="small">
+                                    <Text type="secondary">Started: {formatTime(line.started_at)}</Text>
+                                    {line.ended_at ? (
+                                      <Text type="secondary">Ended: {formatTime(line.ended_at)}</Text>
+                                    ) : (
+                                      <Badge status="processing" text="Running..." />
+                                    )}
+                                  </Space>
+
+                                  {line.ended_at ? (
+                                    <Text strong>Duration: {formatDuration(line.started_at, line.ended_at)}</Text>
+                                  ) : (
+                                    <Card
+                                      size="small"
+                                      style={{ backgroundColor: "#f6ffed", border: "1px solid #b7eb8f" }}
+                                    >
+                                      <Space direction="vertical" style={{ width: "100%" }} size="small">
+                                        <Space>
+                                          <Badge status="processing" />
+                                          <Text
+                                            strong
+                                            style={{
+                                              color: "#52c41a",
+                                              animation: "pulse 2s infinite",
+                                            }}
+                                          >
+                                            Live: {liveDurations.get(line.id) || formatDuration(line.started_at, null)}
+                                          </Text>
+                                        </Space>
+                                        <Button
+                                          type="primary"
+                                          size="small"
+                                          icon={<StopOutlined />}
+                                          onClick={() => stopTracking(line)}
+                                        >
+                                          Stop Tracking
+                                        </Button>
+                                      </Space>
+                                    </Card>
+                                  )}
+                                </Space>
+                              </Card>
+                            </List.Item>
+                          )}
+                        />
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <Empty
+                    description={
+                      <Space direction="vertical">
+                        <Text>Select a Tracker</Text>
+                        <Text type="secondary">
+                          Choose a tracker from the left panel to view details and start tracking time.
+                        </Text>
+                      </Space>
+                    }
+                  />
+                )}
+              </Card>
+            </Col>
+          </Row>
+        </div>
+
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: 16,
+            paddingTop: 16,
+            paddingBottom: 16,
+            borderTop: "1px solid #f0f0f0",
+            flexShrink: 0,
+            backgroundColor: "#fff",
+            width: "100%",
+          }}
+        >
+          <Button danger icon={<ClearOutlined />} onClick={truncateAllData} size="large">
+            Clear All Data
+          </Button>
+        </div>
+      </Content>
+    </Layout>
   );
 }
 
