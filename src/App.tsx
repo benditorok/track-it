@@ -8,7 +8,7 @@ import { ClockCircleOutlined, ClearOutlined } from "@ant-design/icons";
 import { TrackerCard, TrackerDetails } from "./app/index.ts";
 
 const { Header, Content } = Layout;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 function App() {
   const [appInitialized, setInitialized] = useState(false);
