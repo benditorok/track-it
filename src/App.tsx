@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { TrackerEntry, TrackerLine } from "./types/tracker.ts";
-import { Layout, Button, Typography, Space, Spin, Alert, Row, Col, message } from "antd";
+import { Layout, Button, Typography, Space, Spin, Alert, Row, Col, message, Flex } from "antd";
 import { ClockCircleOutlined, ClearOutlined } from "@ant-design/icons";
 import { TrackerCard, TrackerDetails } from "./app/index.ts";
 
@@ -280,13 +280,12 @@ function App() {
           `}
       </style>
       <Header style={{ background: "#fff", padding: "0 24px", borderBottom: "1px solid #f0f0f0" }}>
-        <Space align="center" style={{ height: "100%" }}>
+        <Flex gap="middle" align="center" justify="flex-start" style={{ height: "100%" }}>
           <ClockCircleOutlined style={{ fontSize: "24px", color: "#1890ff" }} />
           <Title level={2} style={{ margin: 0, color: "#1890ff" }}>
             Time Tracker
           </Title>
-          <Text type="secondary">Track your time efficiently with organized trackers</Text>
-        </Space>
+        </Flex>
       </Header>
 
       <Content
