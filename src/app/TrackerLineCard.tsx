@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, Button, Typography, Space, Badge, Tooltip } from "antd";
 import { DeleteOutlined, StopOutlined } from "@ant-design/icons";
-import { TrackerLine } from "../types/tracker";
+import { TrackerLine } from "../types/tracker.ts";
 
 const { Title, Text } = Typography;
 
@@ -45,11 +45,7 @@ export const TrackerLineCard: React.FC<TrackerLineCardProps> = ({
 
         <Space direction="vertical" size="small">
           <Text type="secondary">Started: {formatTime(line.started_at)}</Text>
-          {line.ended_at ? (
-            <Text type="secondary">Ended: {formatTime(line.ended_at)}</Text>
-          ) : (
-            <Badge status="processing" text="Running..." />
-          )}
+          {line.ended_at && <Text type="secondary">Ended: {formatTime(line.ended_at)}</Text>}
         </Space>
 
         {line.ended_at ? (

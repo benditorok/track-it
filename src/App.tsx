@@ -2,11 +2,10 @@ import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm } from "@tauri-apps/plugin-dialog";
-import { TrackerEntry, TrackerLine } from "./types/tracker";
-import { Layout, Button, Typography, Space, Spin, Alert, Row, Col, Modal, message } from "antd";
+import { TrackerEntry, TrackerLine } from "./types/tracker.ts";
+import { Layout, Button, Typography, Space, Spin, Alert, Row, Col, message } from "antd";
 import { ClockCircleOutlined, ClearOutlined } from "@ant-design/icons";
-import { TrackerCard } from "./app/TrackerCard";
-import { TrackerDetails } from "./app/TrackerDetails";
+import { TrackerCard, TrackerDetails } from "./app/index.ts";
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
@@ -165,70 +164,61 @@ function App() {
   };
 
   const deleteTracker = async (tracker: TrackerEntry) => {
-    Modal.confirm({
-      title: "Delete Tracker",
-      content: `Are you sure you want to delete "${tracker.label}" and all its tracking data?`,
-      okText: "Delete",
-      okType: "danger",
-      cancelText: "Cancel",
-      onOk: async () => {
-        try {
-          await invoke("delete_tracker", { trackerId: tracker.id });
-          setTrackers((prev) => prev.filter((t) => t.id !== tracker.id));
-          setTrackerLines((prev) => prev.filter((l) => l.entry_id !== tracker.id));
-          if (selectedTracker?.id === tracker.id) {
-            setSelectedTracker(null);
-          }
-          message.success("Tracker deleted successfully");
-        } catch (err) {
-          setAppError(err as string);
+    const confirmed = await confirm(
+      `Are you sure you want to delete "${tracker.label}" and all its tracking data?`,
+      "Delete Tracker",
+    );
+
+    if (confirmed) {
+      try {
+        await invoke("delete_tracker", { trackerId: tracker.id });
+        setTrackers((prev) => prev.filter((t) => t.id !== tracker.id));
+        setTrackerLines((prev) => prev.filter((l) => l.entry_id !== tracker.id));
+        if (selectedTracker?.id === tracker.id) {
+          setSelectedTracker(null);
         }
-      },
-    });
+        message.success("Tracker deleted successfully");
+      } catch (err) {
+        setAppError(err as string);
+      }
+    }
   };
 
   const deleteTrackerLine = async (line: TrackerLine) => {
-    Modal.confirm({
-      title: "Delete Tracking Entry",
-      content: "Are you sure you want to delete this tracking entry?",
-      okText: "Delete",
-      okType: "danger",
-      cancelText: "Cancel",
-      onOk: async () => {
-        try {
-          await invoke("delete_tracker_line", { lineId: line.id });
-          setTrackerLines((prev) => prev.filter((l) => l.id !== line.id));
-          message.success("Tracking entry deleted successfully");
-        } catch (err) {
-          setAppError(err as string);
-        }
-      },
-    });
+    const confirmed = await confirm("Are you sure you want to delete this tracking entry?", "Delete Tracking Entry");
+
+    if (confirmed) {
+      try {
+        await invoke("delete_tracker_line", { lineId: line.id });
+        setTrackerLines((prev) => prev.filter((l) => l.id !== line.id));
+        message.success("Tracking entry deleted successfully");
+      } catch (err) {
+        setAppError(err as string);
+      }
+    }
   };
 
   const truncateAllData = async () => {
-    Modal.confirm({
-      title: "Clear All Data",
-      content: "Are you sure you want to delete ALL tracking data? This action cannot be undone!",
-      okText: "Delete All",
-      okType: "danger",
-      cancelText: "Cancel",
-      onOk: async () => {
-        try {
-          await invoke("truncate_tables");
-          // Reload data after truncation
-          setTrackers([]);
-          setTrackerLines([]);
-          setSelectedTracker(null);
-          setActiveLines([]);
-          await loadTrackers();
-          await loadTrackerLines();
-          message.success("All data cleared successfully");
-        } catch (err) {
-          setAppError(err as string);
-        }
-      },
-    });
+    const confirmed = await confirm(
+      "Are you sure you want to delete ALL tracking data? This action cannot be undone!",
+      "Clear All Data",
+    );
+
+    if (confirmed) {
+      try {
+        await invoke("truncate_tables");
+        // Reload data after truncation
+        setTrackers([]);
+        setTrackerLines([]);
+        setSelectedTracker(null);
+        setActiveLines([]);
+        await loadTrackers();
+        await loadTrackerLines();
+        message.success("All data cleared successfully");
+      } catch (err) {
+        setAppError(err as string);
+      }
+    }
   };
 
   const formatDuration = (startedAt: string, endedAt: string | null) => {
@@ -282,12 +272,12 @@ function App() {
     <Layout style={{ minHeight: "100vh", height: "100%" }}>
       <style>
         {`
-          @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-          }
-        `}
+            @keyframes pulse {
+              0% { opacity: 1; }
+              50% { opacity: 0.7; }
+              100% { opacity: 1; }
+            }
+          `}
       </style>
       <Header style={{ background: "#fff", padding: "0 24px", borderBottom: "1px solid #f0f0f0" }}>
         <Space align="center" style={{ height: "100%" }}>

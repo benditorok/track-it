@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Card, Button, Input, Typography, Space, List, Empty, Badge, Divider } from "antd";
 import { PlayCircleOutlined } from "@ant-design/icons";
-import { TrackerEntry, TrackerLine } from "../types/tracker";
-import { TrackerLineCard } from "./TrackerLineCard";
+import { TrackerEntry, TrackerLine } from "../types/tracker.ts";
+import { TrackerLineCard } from "./TrackerLineCard.tsx";
 
 const { Title, Text } = Typography;
 

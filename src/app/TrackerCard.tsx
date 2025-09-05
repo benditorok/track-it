@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card, Button, Input, Typography, Space, List, Tag, Empty, Tooltip } from "antd";
 import { PlusOutlined, DeleteOutlined, ClockCircleOutlined, FieldTimeOutlined } from "@ant-design/icons";
-import { TrackerEntry, TrackerLine } from "../types/tracker";
+import { TrackerEntry, TrackerLine } from "../types/tracker.ts";
 
 const { Title } = Typography;
 
