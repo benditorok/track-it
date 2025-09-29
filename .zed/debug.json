@@ -1,0 +1,21 @@
+[
+  {
+    "label": "Tauri Development Debug",
+    "adapter": "CodeLLDB",
+    "request": "launch",
+    "program": "src-tauri/target/debug/track-it",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "build": "cargo:build-dev",
+    "expressions": "native",
+    "sourceLanguages": ["rust"]
+  },
+  {
+    "label": "Tauri Production Debug",
+    "adapter": "CodeLLDB",
+    "request": "launch",
+    "program": "src-tauri/target/release/track-it",
+    "cwd": "$ZED_WORKTREE_ROOT/src-tauri",
+    "build": "cargo:build-release",
+    "sourceLanguages": ["rust"]
+  }
+]
