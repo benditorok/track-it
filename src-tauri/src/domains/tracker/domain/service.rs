@@ -32,6 +32,16 @@ pub trait TrackerServiceTrait: Send + Sync {
         dto: TrackerEntryLineCreateDto,
     ) -> Pin<Box<dyn Future<Output = Result<TrackerEntryLineViewDto, AppError>> + Send + '_>>;
 
+    fn stop_tracking(
+        &self,
+        line_id: i64,
+    ) -> Pin<Box<dyn Future<Output = Result<TrackerEntryLineViewDto, AppError>> + Send + '_>>;
+
+    fn resume_tracking(
+        &self,
+        line_id: i64,
+    ) -> Pin<Box<dyn Future<Output = Result<TrackerEntryLineViewDto, AppError>> + Send + '_>>;
+
     fn update_tracked(
         &self,
         dto: TrackerEntryLineUpdateDto,

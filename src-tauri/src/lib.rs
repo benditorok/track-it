@@ -5,7 +5,8 @@ mod error;
 
 use app::{
     AppState, create_tracker, delete_tracker, delete_tracker_line, get_tracker_lines, get_trackers,
-    initialize_app, start_tracking, stop_all_active_tracking, stop_tracking, truncate_tables,
+    initialize_app, resume_tracking, start_tracking, stop_all_active_tracking, stop_tracking,
+    truncate_tables,
 };
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -31,6 +32,7 @@ pub fn run() {
             get_tracker_lines,
             start_tracking,
             stop_tracking,
+            resume_tracking,
             delete_tracker,
             delete_tracker_line,
             truncate_tables,
