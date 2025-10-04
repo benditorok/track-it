@@ -14,7 +14,7 @@ mod infra {
 }
 
 // Re-export commonly used items for convenience
-pub use domain::model::{TrackerEntry, TrackerEntryLine};
+pub use domain::model::{TrackerEntry, TrackerEntryLine, TrackerEntryLineDuration};
 pub use domain::repository::TrackerRepositoryTrait;
 pub use domain::service::TrackerServiceTrait;
 pub use dto::tracker_dto::*;

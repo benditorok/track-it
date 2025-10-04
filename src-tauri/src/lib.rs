@@ -4,15 +4,10 @@ mod domains;
 mod error;
 
 use app::{
-    AppState, create_tracker, delete_tracker, delete_tracker_line, get_tracker_lines, get_trackers,
-    initialize_app, start_tracking, stop_all_active_tracking, stop_tracking, truncate_tables,
+    AppState, create_tracker, delete_tracker, delete_tracker_line, get_trackers, initialize_app,
+    resume_tracking, start_tracking, stop_all_active_tracking, stop_tracking, truncate_tables,
 };
-
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -24,18 +19,39 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .manage(AppState::default())
         .invoke_handler(tauri::generate_handler![
-            greet,
             initialize_app,
             get_trackers,
             create_tracker,
-            get_tracker_lines,
             start_tracking,
             stop_tracking,
+            resume_tracking,
             delete_tracker,
             delete_tracker_line,
             truncate_tables,
             stop_all_active_tracking
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app_handle, event| {
+            // Handle app exit event to automatically stop all active tracking sessions
+            if let tauri::RunEvent::ExitRequested { .. } = event {
+                let handle = app_handle.clone();
+                tauri::async_runtime::block_on(async move {
+                    let state: tauri::State<AppState> = handle.state();
+
+                    // Use the existing stop_all_active_tracking logic
+                    match stop_all_active_tracking(state).await {
+                        Ok(stopped_lines) => {
+                            log::info!(
+                                "Stopped {} active tracking sessions on app exit",
+                                stopped_lines.len()
+                            );
+                        }
+                        Err(e) => {
+                            log::error!("Failed to stop active tracking on app exit: {}", e);
+                        }
+                    }
+                });
+            }
+        });
 }

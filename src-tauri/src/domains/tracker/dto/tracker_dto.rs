@@ -35,6 +35,7 @@ pub struct TrackerEntryViewDto {
     pub label: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub lines: Vec<TrackerEntryLineViewDto>,
 }
 
 impl Default for TrackerEntryViewDto {
@@ -44,6 +45,7 @@ impl Default for TrackerEntryViewDto {
             label: String::new(),
             created_at: Utc::now(),
             updated_at: Utc::now(),
+            lines: Vec::new(),
         }
     }
 }
@@ -55,6 +57,7 @@ impl From<TrackerEntry> for TrackerEntryViewDto {
             label: entry.label,
             created_at: entry.created_at,
             updated_at: entry.updated_at,
+            lines: Vec::new(),
         }
     }
 }
@@ -101,7 +104,6 @@ impl From<TrackerEntry> for TrackerEntryDeleteDto {
 pub struct TrackerEntryLineCreateDto {
     pub entry_id: i64,
     pub desc: String,
-    pub started_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -111,7 +113,6 @@ impl Default for TrackerEntryLineCreateDto {
         Self {
             entry_id: 0,
             desc: String::new(),
-            started_at: Utc::now(),
             created_at: Utc::now(),
             updated_at: Utc::now(),
         }
@@ -123,7 +124,6 @@ impl From<TrackerEntryLine> for TrackerEntryLineCreateDto {
         Self {
             entry_id: line.entry_id,
             desc: line.desc,
-            started_at: line.started_at,
             created_at: line.created_at,
             updated_at: line.updated_at,
         }
@@ -135,10 +135,9 @@ pub struct TrackerEntryLineViewDto {
     pub id: i64,
     pub entry_id: i64,
     pub desc: String,
-    pub started_at: DateTime<Utc>,
-    pub ended_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub durations: Vec<TrackerEntryLineDurationViewDto>,
 }
 
 impl Default for TrackerEntryLineViewDto {
@@ -147,10 +146,9 @@ impl Default for TrackerEntryLineViewDto {
             id: 0,
             entry_id: 0,
             desc: String::new(),
-            started_at: Utc::now(),
-            ended_at: None,
             created_at: Utc::now(),
             updated_at: Utc::now(),
+            durations: Vec::new(),
         }
     }
 }
@@ -161,10 +159,9 @@ impl From<TrackerEntryLine> for TrackerEntryLineViewDto {
             id: line.id,
             entry_id: line.entry_id,
             desc: line.desc,
-            started_at: line.started_at,
-            ended_at: line.ended_at,
             created_at: line.created_at,
             updated_at: line.updated_at,
+            durations: Vec::new(),
         }
     }
 }
@@ -174,8 +171,6 @@ pub struct TrackerEntryLineUpdateDto {
     pub id: i64,
     pub entry_id: i64,
     pub desc: String,
-    pub started_at: DateTime<Utc>,
-    pub ended_at: Option<DateTime<Utc>>,
     pub updated_at: DateTime<Utc>,
 }
 
@@ -185,8 +180,6 @@ impl Default for TrackerEntryLineUpdateDto {
             id: 0,
             entry_id: 0,
             desc: String::new(),
-            started_at: Utc::now(),
-            ended_at: None,
             updated_at: Utc::now(),
         }
     }
@@ -198,8 +191,6 @@ impl From<TrackerEntryLine> for TrackerEntryLineUpdateDto {
             id: line.id,
             entry_id: line.entry_id,
             desc: line.desc,
-            started_at: line.started_at,
-            ended_at: line.ended_at,
             updated_at: line.updated_at,
         }
     }
@@ -213,5 +204,43 @@ pub struct TrackerEntryLineDeleteDto {
 impl From<TrackerEntryLine> for TrackerEntryLineDeleteDto {
     fn from(line: TrackerEntryLine) -> Self {
         Self { id: line.id }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrackerEntryLineDurationViewDto {
+    pub id: i64,
+    pub entry_line_id: i64,
+    pub started_at: DateTime<Utc>,
+    pub ended_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+impl Default for TrackerEntryLineDurationViewDto {
+    fn default() -> Self {
+        Self {
+            id: 0,
+            entry_line_id: 0,
+            started_at: Utc::now(),
+            ended_at: None,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        }
+    }
+}
+
+use crate::domains::tracker::domain::model::TrackerEntryLineDuration;
+
+impl From<TrackerEntryLineDuration> for TrackerEntryLineDurationViewDto {
+    fn from(duration: TrackerEntryLineDuration) -> Self {
+        Self {
+            id: duration.id,
+            entry_line_id: duration.entry_line_id,
+            started_at: duration.started_at,
+            ended_at: duration.ended_at,
+            created_at: duration.created_at,
+            updated_at: duration.updated_at,
+        }
     }
 }

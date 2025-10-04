@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { TrackerEntry, TrackerLine } from "./types/tracker.ts";
 import { Layout, Button, Typography, Space, Spin, Alert, Row, Col, message, Flex } from "antd";
@@ -19,61 +18,33 @@ function App() {
   const [trackers, setTrackers] = useState<TrackerEntry[]>([]);
   const [selectedTracker, setSelectedTracker] = useState<TrackerEntry | null>(null);
 
-  // Tracking lines state
-  const [trackerLines, setTrackerLines] = useState<TrackerLine[]>([]);
-  const [activeLines, setActiveLines] = useState<TrackerLine[]>([]);
-
   // Live duration updates
   const [liveDurations, setLiveDurations] = useState<Map<number, string>>(new Map());
+
+  // Get all active lines from all trackers
+  const getAllActiveLines = (): TrackerLine[] => {
+    return trackers.flatMap((tracker) =>
+      tracker.lines.filter((line) => line.durations.some((d) => d.ended_at === null)),
+    );
+  };
 
   // Update live durations every second for active lines
   useEffect(() => {
     const interval = setInterval(() => {
       const newDurations = new Map<number, string>();
+      const activeLines = getAllActiveLines();
       activeLines.forEach((line) => {
-        const duration = formatDuration(line.started_at, null);
-        newDurations.set(line.id, duration);
+        const activeDuration = line.durations.find((d) => d.ended_at === null);
+        if (activeDuration) {
+          const duration = formatDuration(activeDuration.started_at, null);
+          newDurations.set(line.id, duration);
+        }
       });
       setLiveDurations(newDurations);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [activeLines]);
-
-  // Handle window close event to stop active tracking
-  useEffect(() => {
-    const appWindow = getCurrentWindow();
-
-    const setupCloseHandler = async () => {
-      const unlisten = await appWindow.onCloseRequested(async (event) => {
-        const confirmed = await confirm("Are you sure you want to exit the application and stop all active trackers?");
-        if (!confirmed) {
-          // Prevent the window from closing if the user cancels
-          event.preventDefault();
-          return;
-        }
-
-        try {
-          // Perform cleanup
-          await invoke("stop_all_active_tracking");
-          await loadTrackerLines();
-          await new Promise((r) => setTimeout(r, 500));
-        } catch (err) {
-          console.error("Error in close handler:", err);
-        }
-      });
-
-      return unlisten;
-    };
-
-    const unlistenPromise = setupCloseHandler();
-
-    return () => {
-      unlistenPromise.then((unlisten) => {
-        unlisten();
-      });
-    };
-  }, []);
+  }, [trackers]);
 
   // Initialize the app
   useEffect(() => {
@@ -83,7 +54,6 @@ function App() {
         await invoke("initialize_app");
         setInitialized(true);
         await loadTrackers();
-        await loadTrackerLines();
       } catch (err) {
         setAppError(err as string);
       } finally {
@@ -94,25 +64,17 @@ function App() {
     initializeApp();
   }, []);
 
-  // Update active lines when tracker lines change
-  useEffect(() => {
-    const active = trackerLines.filter((line) => line.ended_at === null);
-    setActiveLines(active);
-  }, [trackerLines]);
-
   const loadTrackers = async () => {
     try {
       const trackersData = await invoke<TrackerEntry[]>("get_trackers");
       setTrackers(trackersData);
-    } catch (err) {
-      setAppError(err as string);
-    }
-  };
-
-  const loadTrackerLines = async () => {
-    try {
-      const linesData = await invoke<TrackerLine[]>("get_tracker_lines");
-      setTrackerLines(linesData);
+      // Update selected tracker if it exists
+      if (selectedTracker) {
+        const updatedTracker = trackersData.find((t) => t.id === selectedTracker.id);
+        if (updatedTracker) {
+          setSelectedTracker(updatedTracker);
+        }
+      }
     } catch (err) {
       setAppError(err as string);
     }
@@ -136,11 +98,11 @@ function App() {
     if (!description.trim()) return;
 
     try {
-      const newLine = await invoke<TrackerLine>("start_tracking", {
+      await invoke<TrackerLine>("start_tracking", {
         entryId: entryId,
         description: description,
       });
-      setTrackerLines((prev) => [...prev, newLine]);
+      await loadTrackers();
       message.success("Tracking started successfully");
     } catch (err) {
       setAppError(err as string);
@@ -149,15 +111,23 @@ function App() {
 
   const stopTracking = async (line: TrackerLine) => {
     try {
-      const updatedLine = await invoke<TrackerLine>("stop_tracking", {
+      await invoke<TrackerLine>("stop_tracking", {
         lineId: line.id,
-        entryId: line.entry_id,
-        description: line.desc,
-        startedAt: line.started_at,
       });
-
-      setTrackerLines((prev) => prev.map((l) => (l.id === updatedLine.id ? updatedLine : l)));
+      await loadTrackers();
       message.success("Tracking stopped successfully");
+    } catch (err) {
+      setAppError(err as string);
+    }
+  };
+
+  const resumeTracking = async (line: TrackerLine) => {
+    try {
+      await invoke<TrackerLine>("resume_tracking", {
+        lineId: line.id,
+      });
+      await loadTrackers();
+      message.success("Tracking resumed successfully");
     } catch (err) {
       setAppError(err as string);
     }
@@ -173,7 +143,6 @@ function App() {
       try {
         await invoke("delete_tracker", { trackerId: tracker.id });
         setTrackers((prev) => prev.filter((t) => t.id !== tracker.id));
-        setTrackerLines((prev) => prev.filter((l) => l.entry_id !== tracker.id));
         if (selectedTracker?.id === tracker.id) {
           setSelectedTracker(null);
         }
@@ -190,7 +159,7 @@ function App() {
     if (confirmed) {
       try {
         await invoke("delete_tracker_line", { lineId: line.id });
-        setTrackerLines((prev) => prev.filter((l) => l.id !== line.id));
+        await loadTrackers();
         message.success("Tracking entry deleted successfully");
       } catch (err) {
         setAppError(err as string);
@@ -209,11 +178,8 @@ function App() {
         await invoke("truncate_tables");
         // Reload data after truncation
         setTrackers([]);
-        setTrackerLines([]);
         setSelectedTracker(null);
-        setActiveLines([]);
         await loadTrackers();
-        await loadTrackerLines();
         message.success("All data cleared successfully");
       } catch (err) {
         setAppError(err as string);
@@ -269,7 +235,7 @@ function App() {
   }
 
   return (
-    <Layout style={{ minHeight: "100vh", height: "100%" }}>
+    <Layout style={{ height: "calc(100vh - 16px)", display: "flex", flexDirection: "column" }}>
       <style>
         {`
             @keyframes pulse {
@@ -283,70 +249,48 @@ function App() {
         <Flex gap="middle" align="center" justify="flex-start" style={{ height: "100%" }}>
           <ClockCircleOutlined style={{ fontSize: "24px", color: "#1890ff" }} />
           <Title level={2} style={{ margin: 0, color: "#1890ff" }}>
-            Time Tracker
+            track-it
           </Title>
         </Flex>
       </Header>
 
-      <Content
-        style={{
-          padding: "16px",
-          display: "flex",
-          flexDirection: "column",
-          minHeight: "calc(100vh - 64px)",
-          overflow: "auto",
-        }}
-      >
-        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-          <Row gutter={[16, 16]} style={{ flex: 1, minHeight: 0 }}>
-            {/* Left Panel - Trackers */}
-            <Col xs={24} lg={10} style={{ height: "100%", minHeight: "300px" }}>
-              <TrackerCard
-                trackers={trackers}
-                trackerLines={trackerLines}
-                selectedTracker={selectedTracker}
-                liveDurations={liveDurations}
-                onCreateTracker={createTracker}
-                onDeleteTracker={deleteTracker}
-                onSelectTracker={setSelectedTracker}
-                onStopTracking={stopTracking}
-                formatDuration={formatDuration}
-              />
-            </Col>
+      <Content style={{ flex: 1, overflow: "auto", padding: "16px" }}>
+        <Row gutter={[16, 16]}>
+          {/* Left Panel - Trackers */}
+          <Col xs={24} lg={10}>
+            <TrackerCard
+              trackers={trackers}
+              selectedTracker={selectedTracker}
+              liveDurations={liveDurations}
+              onCreateTracker={createTracker}
+              onDeleteTracker={deleteTracker}
+              onSelectTracker={setSelectedTracker}
+              onStopTracking={stopTracking}
+              formatDuration={formatDuration}
+            />
+          </Col>
 
-            {/* Right Panel - Selected Tracker Details */}
-            <Col xs={24} lg={14} style={{ height: "100%", minHeight: "400px" }}>
-              <TrackerDetails
-                selectedTracker={selectedTracker}
-                trackerLines={trackerLines}
-                liveDurations={liveDurations}
-                onStartTracking={startTracking}
-                onStopTracking={stopTracking}
-                onDeleteTrackerLine={deleteTrackerLine}
-                formatDuration={formatDuration}
-                formatTime={formatTime}
-              />
-            </Col>
-          </Row>
-        </div>
-
-        <div
-          style={{
-            textAlign: "center",
-            marginTop: 16,
-            paddingTop: 16,
-            paddingBottom: 16,
-            borderTop: "1px solid #f0f0f0",
-            flexShrink: 0,
-            backgroundColor: "#fff",
-            width: "100%",
-          }}
-        >
-          <Button danger icon={<ClearOutlined />} onClick={truncateAllData} size="large">
-            Clear All Data
-          </Button>
-        </div>
+          {/* Right Panel - Selected Tracker Details */}
+          <Col xs={24} lg={14}>
+            <TrackerDetails
+              selectedTracker={selectedTracker}
+              liveDurations={liveDurations}
+              onStartTracking={startTracking}
+              onStopTracking={stopTracking}
+              onResumeTracking={resumeTracking}
+              onDeleteTrackerLine={deleteTrackerLine}
+              formatDuration={formatDuration}
+              formatTime={formatTime}
+            />
+          </Col>
+        </Row>
       </Content>
+
+      <div style={{ padding: "8px 16px", borderTop: "1px solid #f0f0f0", display: "flex", justifyContent: "flex-end" }}>
+        <Button danger icon={<ClearOutlined />} onClick={truncateAllData} size="small">
+          Clear All Data
+        </Button>
+      </div>
     </Layout>
   );
 }

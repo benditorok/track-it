@@ -94,22 +94,6 @@ pub async fn create_tracker(
 }
 
 #[tauri::command]
-pub async fn get_tracker_lines(
-    state: State<'_, AppState>,
-) -> Result<Vec<TrackerEntryLineViewDto>, String> {
-    let service_guard = state.tracker_service.lock().await;
-
-    if let Some(service) = service_guard.as_ref() {
-        service
-            .get_tracker_lines()
-            .await
-            .map_err(|e| format!("Failed to get tracker lines: {}", e))
-    } else {
-        Err("Service not initialized".to_string())
-    }
-}
-
-#[tauri::command]
 pub async fn start_tracking(
     entry_id: i64,
     description: String,
@@ -121,7 +105,6 @@ pub async fn start_tracking(
         let dto = TrackerEntryLineCreateDto {
             entry_id,
             desc: description,
-            started_at: Utc::now(),
             created_at: Utc::now(),
             updated_at: Utc::now(),
         };
@@ -138,31 +121,32 @@ pub async fn start_tracking(
 #[tauri::command]
 pub async fn stop_tracking(
     line_id: i64,
-    entry_id: i64,
-    description: String,
-    started_at: String, // ISO string
     state: State<'_, AppState>,
 ) -> Result<TrackerEntryLineViewDto, String> {
     let service_guard = state.tracker_service.lock().await;
 
     if let Some(service) = service_guard.as_ref() {
-        let started_at_parsed = chrono::DateTime::parse_from_rfc3339(&started_at)
-            .map_err(|e| format!("Invalid date format: {}", e))?
-            .with_timezone(&Utc);
-
-        let dto = TrackerEntryLineUpdateDto {
-            id: line_id,
-            entry_id,
-            desc: description,
-            started_at: started_at_parsed,
-            ended_at: Some(Utc::now()),
-            updated_at: Utc::now(),
-        };
-
         service
-            .update_tracked(dto)
+            .stop_tracking(line_id)
             .await
             .map_err(|e| format!("Failed to stop tracking: {}", e))
+    } else {
+        Err("Service not initialized".to_string())
+    }
+}
+
+#[tauri::command]
+pub async fn resume_tracking(
+    line_id: i64,
+    state: State<'_, AppState>,
+) -> Result<TrackerEntryLineViewDto, String> {
+    let service_guard = state.tracker_service.lock().await;
+
+    if let Some(service) = service_guard.as_ref() {
+        service
+            .resume_tracking(line_id)
+            .await
+            .map_err(|e| format!("Failed to resume tracking: {}", e))
     } else {
         Err("Service not initialized".to_string())
     }
@@ -211,31 +195,23 @@ pub async fn stop_all_active_tracking(
     let service_guard = state.tracker_service.lock().await;
 
     if let Some(service) = service_guard.as_ref() {
-        // Get all tracker lines
-        let all_lines = service
-            .get_tracker_lines()
+        // Get all trackers (which include their lines)
+        let all_trackers = service
+            .get_trackers()
             .await
-            .map_err(|e| format!("Failed to get tracker lines: {}", e))?;
+            .map_err(|e| format!("Failed to get trackers: {}", e))?;
 
-        // Find active lines (those without end_at)
-        let active_lines: Vec<TrackerEntryLineViewDto> = all_lines
+        // Extract all lines from all trackers and find active ones
+        let active_lines: Vec<TrackerEntryLineViewDto> = all_trackers
             .into_iter()
-            .filter(|line| line.ended_at.is_none())
+            .flat_map(|tracker| tracker.lines)
+            .filter(|line| line.durations.iter().any(|d| d.ended_at.is_none()))
             .collect();
 
         // Stop each active line
         let mut stopped_lines = Vec::new();
         for line in active_lines {
-            let dto = TrackerEntryLineUpdateDto {
-                id: line.id,
-                entry_id: line.entry_id,
-                desc: line.desc.clone(),
-                started_at: line.started_at,
-                ended_at: Some(Utc::now()),
-                updated_at: Utc::now(),
-            };
-
-            match service.update_tracked(dto).await {
+            match service.stop_tracking(line.id).await {
                 Ok(updated_line) => {
                     log::info!("Stopped active tracking line: {}", updated_line.id);
                     stopped_lines.push(updated_line);
