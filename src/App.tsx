@@ -235,7 +235,7 @@ function App() {
   }
 
   return (
-    <Layout style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+    <Layout style={{ height: "calc(100vh - 16px)", display: "flex", flexDirection: "column" }}>
       <style>
         {`
             @keyframes pulse {
