@@ -66,9 +66,12 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       return lines.filter((line) => {
-        const lineDate = new Date(line.created_at);
-        lineDate.setHours(0, 0, 0, 0);
-        return lineDate.getTime() === today.getTime();
+        // Check if any duration was active today
+        return line.durations.some((duration) => {
+          const durationDate = new Date(duration.started_at);
+          durationDate.setHours(0, 0, 0, 0);
+          return durationDate.getTime() === today.getTime();
+        });
       });
     }
     return lines;
