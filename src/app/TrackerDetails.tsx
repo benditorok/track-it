@@ -45,7 +45,7 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
       <Card
         title="Select a Tracker"
         style={{ height: "100%", display: "flex", flexDirection: "column" }}
-        bodyStyle={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "16px" }}
+        styles={{ body: { flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "16px" } }}
       >
         <Empty
           description={
@@ -73,7 +73,7 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
         </Space>
       }
       style={{ height: "100%", display: "flex", flexDirection: "column" }}
-      bodyStyle={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "16px" }}
+      styles={{ body: { flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "16px" } }}
     >
       {/* Start New Tracking */}
       {!activeLine && (

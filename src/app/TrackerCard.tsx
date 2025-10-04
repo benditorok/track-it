@@ -43,7 +43,7 @@ export const TrackerCard: React.FC<TrackerCardProps> = ({
     <Card
       title="Trackers"
       style={{ height: "100%", display: "flex", flexDirection: "column" }}
-      bodyStyle={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "16px" }}
+      styles={{ body: { flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "16px" } }}
     >
       <Space.Compact style={{ width: "100%", marginBottom: 16 }}>
         <Input
