@@ -248,8 +248,8 @@ function App() {
       <Header style={{ background: "#fff", padding: "0 24px", borderBottom: "1px solid #f0f0f0" }}>
         <Flex gap="middle" align="center" justify="flex-start" style={{ height: "100%" }}>
           <ClockCircleOutlined style={{ fontSize: "24px", color: "#1890ff" }} />
-          <Title level={2} style={{ margin: 0, color: "#1890ff" }}>
-            Time Tracker
+          <Title level={2} style={{ margin: 0 }}>
+            track-it <span style={{ fontStyle: "italic", fontWeight: "normal", color: "#8c8c8c" }}>time tracker</span>
           </Title>
         </Flex>
       </Header>
@@ -286,8 +286,8 @@ function App() {
         </Row>
       </Content>
 
-      <div style={{ textAlign: "center", padding: "16px", borderTop: "1px solid #f0f0f0" }}>
-        <Button danger icon={<ClearOutlined />} onClick={truncateAllData} size="large">
+      <div style={{ padding: "8px 16px", borderTop: "1px solid #f0f0f0", display: "flex", justifyContent: "flex-end" }}>
+        <Button danger icon={<ClearOutlined />} onClick={truncateAllData} size="small">
           Clear All Data
         </Button>
       </div>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Card, Button, Input, Typography, Space, List, Empty, Badge, Divider } from "antd";
-import { PlayCircleOutlined } from "@ant-design/icons";
+import { Card, Button, Input, Typography, Space, List, Empty, Badge, Divider, Segmented } from "antd";
+import { PlayCircleOutlined, CalendarOutlined, UnorderedListOutlined } from "@ant-design/icons";
 import { TrackerEntry, TrackerLine } from "../types/tracker.ts";
 import { TrackerLineCard } from "./TrackerLineCard.tsx";
 
@@ -28,6 +28,7 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
   formatTime,
 }) => {
   const [newLineDesc, setNewLineDesc] = useState("");
+  const [filter, setFilter] = useState<"all" | "today">("all");
 
   const handleStartTracking = () => {
     if (selectedTracker && newLineDesc.trim()) {
@@ -58,7 +59,22 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
   }
 
   const activeLine = getActiveLineForTracker(selectedTracker);
-  const lines = selectedTracker.lines;
+
+  // Filter lines based on selected filter
+  const filterLines = (lines: TrackerLine[]) => {
+    if (filter === "today") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return lines.filter((line) => {
+        const lineDate = new Date(line.created_at);
+        lineDate.setHours(0, 0, 0, 0);
+        return lineDate.getTime() === today.getTime();
+      });
+    }
+    return lines;
+  };
+
+  const lines = filterLines(selectedTracker.lines);
 
   return (
     <Card
@@ -94,9 +110,25 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
       )}
 
       {/* Tracking History */}
-      <Title level={4}>Tracking History</Title>
+      <Space style={{ width: "100%", justifyContent: "space-between", marginBottom: 8 }}>
+        <Title level={4} style={{ margin: 0 }}>
+          Tracking History
+        </Title>
+        <Segmented
+          options={[
+            { label: "All", value: "all", icon: <UnorderedListOutlined /> },
+            { label: "Today", value: "today", icon: <CalendarOutlined /> },
+          ]}
+          value={filter}
+          onChange={(value) => setFilter(value as "all" | "today")}
+        />
+      </Space>
       {lines.length === 0 ? (
-        <Empty description="No tracking entries yet. Start tracking above!" />
+        <Empty
+          description={
+            filter === "today" ? "No tracking entries for today" : "No tracking entries yet. Start tracking above!"
+          }
+        />
       ) : (
         <List
           dataSource={lines.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())}
