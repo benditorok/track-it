@@ -45,7 +45,7 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
       <Card
         title="Select a Tracker"
         style={{ height: "100%", display: "flex", flexDirection: "column" }}
-        styles={{ body: { flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "16px" } }}
+        styles={{ body: { flex: 1, overflow: "auto", display: "flex", flexDirection: "column" } }}
       >
         <Empty
           description={
@@ -73,13 +73,13 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
         </Space>
       }
       style={{ height: "100%", display: "flex", flexDirection: "column" }}
-      styles={{ body: { flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "16px" } }}
+      styles={{ body: { flex: 1, overflow: "auto", display: "flex", flexDirection: "column" } }}
     >
       {/* Start New Tracking */}
       {!activeLine && (
         <>
           <Title level={4}>Start New Task</Title>
-          <Space.Compact style={{ width: "100%", marginBottom: 24 }}>
+          <Space.Compact style={{ width: "100%" }}>
             <Input
               placeholder="What are you working on?"
               value={newLineDesc}
@@ -101,7 +101,7 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
 
       {/* Tracking History */}
       <Title level={4}>Tracking History</Title>
-      <div style={{ flex: 1, overflow: "auto", minHeight: 0 }}>
+      <div style={{ flex: 1, overflow: "auto" }}>
         {lines.length === 0 ? (
           <Empty description="No tracking entries yet. Start tracking above!" />
         ) : (

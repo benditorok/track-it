@@ -43,9 +43,9 @@ export const TrackerCard: React.FC<TrackerCardProps> = ({
     <Card
       title="Trackers"
       style={{ height: "100%", display: "flex", flexDirection: "column" }}
-      styles={{ body: { flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "16px" } }}
+      styles={{ body: { flex: 1, overflow: "auto", display: "flex", flexDirection: "column" } }}
     >
-      <Space.Compact style={{ width: "100%", marginBottom: 16 }}>
+      <Space.Compact style={{ width: "100%" }}>
         <Input
           placeholder="Enter tracker name..."
           value={newTrackerLabel}
@@ -57,7 +57,7 @@ export const TrackerCard: React.FC<TrackerCardProps> = ({
         </Button>
       </Space.Compact>
 
-      <div style={{ flex: 1, overflow: "auto", minHeight: 0 }}>
+      <div style={{ flex: 1, overflow: "auto" }}>
         {trackers.length === 0 ? (
           <Empty description="No trackers yet. Create your first tracker above!" />
         ) : (

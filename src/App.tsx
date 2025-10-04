@@ -254,18 +254,11 @@ function App() {
         </Flex>
       </Header>
 
-      <Content
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          minHeight: "calc(100vh - 64px)",
-          overflow: "auto",
-        }}
-      >
-        <div style={{ flex: 1, padding: "16px", paddingBottom: 0, overflow: "hidden" }}>
-          <Row gutter={[16, 16]} style={{ height: "100%", margin: 0 }}>
+      <Content style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 64px)", overflow: "hidden" }}>
+        <div style={{ flex: 1, overflow: "auto", padding: "16px", paddingBottom: "16px" }}>
+          <Row gutter={[16, 16]}>
             {/* Left Panel - Trackers */}
-            <Col xs={24} lg={10} style={{ height: "100%", minHeight: "300px" }}>
+            <Col xs={24} lg={10} style={{ height: "fit-content" }}>
               <TrackerCard
                 trackers={trackers}
                 selectedTracker={selectedTracker}
@@ -279,7 +272,7 @@ function App() {
             </Col>
 
             {/* Right Panel - Selected Tracker Details */}
-            <Col xs={24} lg={14} style={{ height: "100%", minHeight: "400px" }}>
+            <Col xs={24} lg={14} style={{ height: "fit-content" }}>
               <TrackerDetails
                 selectedTracker={selectedTracker}
                 liveDurations={liveDurations}
@@ -294,14 +287,7 @@ function App() {
           </Row>
         </div>
 
-        <div
-          style={{
-            textAlign: "center",
-            padding: "16px",
-            borderTop: "1px solid #f0f0f0",
-            backgroundColor: "#fff",
-          }}
-        >
+        <div style={{ textAlign: "center", padding: "16px", borderTop: "1px solid #f0f0f0", flexShrink: 0 }}>
           <Button danger icon={<ClearOutlined />} onClick={truncateAllData} size="large">
             Clear All Data
           </Button>
