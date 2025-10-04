@@ -42,11 +42,7 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
 
   if (!selectedTracker) {
     return (
-      <Card
-        title="Select a Tracker"
-        style={{ height: "100%", display: "flex", flexDirection: "column" }}
-        styles={{ body: { flex: 1, overflow: "auto", display: "flex", flexDirection: "column" } }}
-      >
+      <Card title="Select a Tracker">
         <Empty
           description={
             <Space direction="vertical">
@@ -72,8 +68,6 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
           <Badge count={selectedTracker.id} color="blue" />
         </Space>
       }
-      style={{ height: "100%", display: "flex", flexDirection: "column" }}
-      styles={{ body: { flex: 1, overflow: "auto", display: "flex", flexDirection: "column" } }}
     >
       {/* Start New Tracking */}
       {!activeLine && (
@@ -101,28 +95,26 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
 
       {/* Tracking History */}
       <Title level={4}>Tracking History</Title>
-      <div style={{ flex: 1, overflow: "auto" }}>
-        {lines.length === 0 ? (
-          <Empty description="No tracking entries yet. Start tracking above!" />
-        ) : (
-          <List
-            dataSource={lines.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())}
-            renderItem={(line) => (
-              <List.Item>
-                <TrackerLineCard
-                  line={line}
-                  liveDuration={liveDurations.get(line.id)}
-                  onDelete={onDeleteTrackerLine}
-                  onStop={line.durations.some((d) => d.ended_at === null) ? onStopTracking : undefined}
-                  onResume={!line.durations.some((d) => d.ended_at === null) ? onResumeTracking : undefined}
-                  formatDuration={formatDuration}
-                  formatTime={formatTime}
-                />
-              </List.Item>
-            )}
-          />
-        )}
-      </div>
+      {lines.length === 0 ? (
+        <Empty description="No tracking entries yet. Start tracking above!" />
+      ) : (
+        <List
+          dataSource={lines.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())}
+          renderItem={(line) => (
+            <List.Item>
+              <TrackerLineCard
+                line={line}
+                liveDuration={liveDurations.get(line.id)}
+                onDelete={onDeleteTrackerLine}
+                onStop={line.durations.some((d) => d.ended_at === null) ? onStopTracking : undefined}
+                onResume={!line.durations.some((d) => d.ended_at === null) ? onResumeTracking : undefined}
+                formatDuration={formatDuration}
+                formatTime={formatTime}
+              />
+            </List.Item>
+          )}
+        />
+      )}
     </Card>
   );
 };

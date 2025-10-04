@@ -235,7 +235,7 @@ function App() {
   }
 
   return (
-    <Layout style={{ minHeight: "100vh", height: "100%" }}>
+    <Layout style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
       <style>
         {`
             @keyframes pulse {
@@ -254,45 +254,43 @@ function App() {
         </Flex>
       </Header>
 
-      <Content style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 64px)", overflow: "hidden" }}>
-        <div style={{ flex: 1, overflow: "auto", padding: "16px", paddingBottom: "16px" }}>
-          <Row gutter={[16, 16]}>
-            {/* Left Panel - Trackers */}
-            <Col xs={24} lg={10} style={{ height: "fit-content" }}>
-              <TrackerCard
-                trackers={trackers}
-                selectedTracker={selectedTracker}
-                liveDurations={liveDurations}
-                onCreateTracker={createTracker}
-                onDeleteTracker={deleteTracker}
-                onSelectTracker={setSelectedTracker}
-                onStopTracking={stopTracking}
-                formatDuration={formatDuration}
-              />
-            </Col>
+      <Content style={{ flex: 1, overflow: "auto", padding: "16px" }}>
+        <Row gutter={[16, 16]}>
+          {/* Left Panel - Trackers */}
+          <Col xs={24} lg={10}>
+            <TrackerCard
+              trackers={trackers}
+              selectedTracker={selectedTracker}
+              liveDurations={liveDurations}
+              onCreateTracker={createTracker}
+              onDeleteTracker={deleteTracker}
+              onSelectTracker={setSelectedTracker}
+              onStopTracking={stopTracking}
+              formatDuration={formatDuration}
+            />
+          </Col>
 
-            {/* Right Panel - Selected Tracker Details */}
-            <Col xs={24} lg={14} style={{ height: "fit-content" }}>
-              <TrackerDetails
-                selectedTracker={selectedTracker}
-                liveDurations={liveDurations}
-                onStartTracking={startTracking}
-                onStopTracking={stopTracking}
-                onResumeTracking={resumeTracking}
-                onDeleteTrackerLine={deleteTrackerLine}
-                formatDuration={formatDuration}
-                formatTime={formatTime}
-              />
-            </Col>
-          </Row>
-        </div>
-
-        <div style={{ textAlign: "center", padding: "16px", borderTop: "1px solid #f0f0f0", flexShrink: 0 }}>
-          <Button danger icon={<ClearOutlined />} onClick={truncateAllData} size="large">
-            Clear All Data
-          </Button>
-        </div>
+          {/* Right Panel - Selected Tracker Details */}
+          <Col xs={24} lg={14}>
+            <TrackerDetails
+              selectedTracker={selectedTracker}
+              liveDurations={liveDurations}
+              onStartTracking={startTracking}
+              onStopTracking={stopTracking}
+              onResumeTracking={resumeTracking}
+              onDeleteTrackerLine={deleteTrackerLine}
+              formatDuration={formatDuration}
+              formatTime={formatTime}
+            />
+          </Col>
+        </Row>
       </Content>
+
+      <div style={{ textAlign: "center", padding: "16px", borderTop: "1px solid #f0f0f0" }}>
+        <Button danger icon={<ClearOutlined />} onClick={truncateAllData} size="large">
+          Clear All Data
+        </Button>
+      </div>
     </Layout>
   );
 }
