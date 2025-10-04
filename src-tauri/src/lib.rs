@@ -4,9 +4,8 @@ mod domains;
 mod error;
 
 use app::{
-    AppState, create_tracker, delete_tracker, delete_tracker_line, get_tracker_lines, get_trackers,
-    initialize_app, resume_tracking, start_tracking, stop_all_active_tracking, stop_tracking,
-    truncate_tables,
+    AppState, create_tracker, delete_tracker, delete_tracker_line, get_trackers, initialize_app,
+    resume_tracking, start_tracking, stop_all_active_tracking, stop_tracking, truncate_tables,
 };
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -29,7 +28,6 @@ pub fn run() {
             initialize_app,
             get_trackers,
             create_tracker,
-            get_tracker_lines,
             start_tracking,
             stop_tracking,
             resume_tracking,

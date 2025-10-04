@@ -7,7 +7,6 @@ const { Title } = Typography;
 
 interface TrackerCardProps {
   trackers: TrackerEntry[];
-  trackerLines: TrackerLine[];
   selectedTracker: TrackerEntry | null;
   liveDurations: Map<number, string>;
   onCreateTracker: (label: string) => void;
@@ -19,7 +18,6 @@ interface TrackerCardProps {
 
 export const TrackerCard: React.FC<TrackerCardProps> = ({
   trackers,
-  trackerLines,
   selectedTracker,
   liveDurations,
   onCreateTracker,
@@ -37,15 +35,8 @@ export const TrackerCard: React.FC<TrackerCardProps> = ({
     }
   };
 
-  const getTrackerLines = (trackerId: number) => {
-    return trackerLines.filter((line) => line.entry_id === trackerId);
-  };
-
-  const getActiveLineForTracker = (trackerId: number) => {
-    return (
-      trackerLines.find((line) => line.entry_id === trackerId && line.durations.some((d) => d.ended_at === null)) ||
-      null
-    );
+  const getActiveLineForTracker = (tracker: TrackerEntry) => {
+    return tracker.lines.find((line) => line.durations.some((d) => d.ended_at === null)) || null;
   };
 
   return (
@@ -73,8 +64,7 @@ export const TrackerCard: React.FC<TrackerCardProps> = ({
           <List
             dataSource={trackers}
             renderItem={(tracker) => {
-              const lines = getTrackerLines(tracker.id);
-              const activeLine = getActiveLineForTracker(tracker.id);
+              const activeLine = getActiveLineForTracker(tracker);
               const isSelected = selectedTracker?.id === tracker.id;
 
               return (
@@ -109,7 +99,7 @@ export const TrackerCard: React.FC<TrackerCardProps> = ({
                       </Title>
 
                       <Space wrap>
-                        <Tag icon={<FieldTimeOutlined />}>{lines.length} entries</Tag>
+                        <Tag icon={<FieldTimeOutlined />}>{tracker.lines.length} entries</Tag>
                         {activeLine && (
                           <Tag color="green" icon={<ClockCircleOutlined />} style={{ animation: "pulse 2s infinite" }}>
                             Running:{" "}

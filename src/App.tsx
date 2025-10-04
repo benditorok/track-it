@@ -19,17 +19,21 @@ function App() {
   const [trackers, setTrackers] = useState<TrackerEntry[]>([]);
   const [selectedTracker, setSelectedTracker] = useState<TrackerEntry | null>(null);
 
-  // Tracking lines state
-  const [trackerLines, setTrackerLines] = useState<TrackerLine[]>([]);
-  const [activeLines, setActiveLines] = useState<TrackerLine[]>([]);
-
   // Live duration updates
   const [liveDurations, setLiveDurations] = useState<Map<number, string>>(new Map());
+
+  // Get all active lines from all trackers
+  const getAllActiveLines = (): TrackerLine[] => {
+    return trackers.flatMap((tracker) =>
+      tracker.lines.filter((line) => line.durations.some((d) => d.ended_at === null)),
+    );
+  };
 
   // Update live durations every second for active lines
   useEffect(() => {
     const interval = setInterval(() => {
       const newDurations = new Map<number, string>();
+      const activeLines = getAllActiveLines();
       activeLines.forEach((line) => {
         const activeDuration = line.durations.find((d) => d.ended_at === null);
         if (activeDuration) {
@@ -41,7 +45,7 @@ function App() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [activeLines]);
+  }, [trackers]);
 
   // Handle window close event to stop active tracking
   useEffect(() => {
@@ -59,7 +63,7 @@ function App() {
         try {
           // Perform cleanup
           await invoke("stop_all_active_tracking");
-          await loadTrackerLines();
+          await loadTrackers();
           await new Promise((r) => setTimeout(r, 500));
         } catch (err) {
           console.error("Error in close handler:", err);
@@ -86,7 +90,6 @@ function App() {
         await invoke("initialize_app");
         setInitialized(true);
         await loadTrackers();
-        await loadTrackerLines();
       } catch (err) {
         setAppError(err as string);
       } finally {
@@ -97,25 +100,17 @@ function App() {
     initializeApp();
   }, []);
 
-  // Update active lines when tracker lines change
-  useEffect(() => {
-    const active = trackerLines.filter((line) => line.durations.some((d) => d.ended_at === null));
-    setActiveLines(active);
-  }, [trackerLines]);
-
   const loadTrackers = async () => {
     try {
       const trackersData = await invoke<TrackerEntry[]>("get_trackers");
       setTrackers(trackersData);
-    } catch (err) {
-      setAppError(err as string);
-    }
-  };
-
-  const loadTrackerLines = async () => {
-    try {
-      const linesData = await invoke<TrackerLine[]>("get_tracker_lines");
-      setTrackerLines(linesData);
+      // Update selected tracker if it exists
+      if (selectedTracker) {
+        const updatedTracker = trackersData.find((t) => t.id === selectedTracker.id);
+        if (updatedTracker) {
+          setSelectedTracker(updatedTracker);
+        }
+      }
     } catch (err) {
       setAppError(err as string);
     }
@@ -139,11 +134,11 @@ function App() {
     if (!description.trim()) return;
 
     try {
-      const newLine = await invoke<TrackerLine>("start_tracking", {
+      await invoke<TrackerLine>("start_tracking", {
         entryId: entryId,
         description: description,
       });
-      setTrackerLines((prev) => [...prev, newLine]);
+      await loadTrackers();
       message.success("Tracking started successfully");
     } catch (err) {
       setAppError(err as string);
@@ -152,11 +147,10 @@ function App() {
 
   const stopTracking = async (line: TrackerLine) => {
     try {
-      const updatedLine = await invoke<TrackerLine>("stop_tracking", {
+      await invoke<TrackerLine>("stop_tracking", {
         lineId: line.id,
       });
-
-      setTrackerLines((prev) => prev.map((l) => (l.id === updatedLine.id ? updatedLine : l)));
+      await loadTrackers();
       message.success("Tracking stopped successfully");
     } catch (err) {
       setAppError(err as string);
@@ -165,11 +159,10 @@ function App() {
 
   const resumeTracking = async (line: TrackerLine) => {
     try {
-      const updatedLine = await invoke<TrackerLine>("resume_tracking", {
+      await invoke<TrackerLine>("resume_tracking", {
         lineId: line.id,
       });
-
-      setTrackerLines((prev) => prev.map((l) => (l.id === updatedLine.id ? updatedLine : l)));
+      await loadTrackers();
       message.success("Tracking resumed successfully");
     } catch (err) {
       setAppError(err as string);
@@ -186,7 +179,6 @@ function App() {
       try {
         await invoke("delete_tracker", { trackerId: tracker.id });
         setTrackers((prev) => prev.filter((t) => t.id !== tracker.id));
-        setTrackerLines((prev) => prev.filter((l) => l.entry_id !== tracker.id));
         if (selectedTracker?.id === tracker.id) {
           setSelectedTracker(null);
         }
@@ -203,7 +195,7 @@ function App() {
     if (confirmed) {
       try {
         await invoke("delete_tracker_line", { lineId: line.id });
-        setTrackerLines((prev) => prev.filter((l) => l.id !== line.id));
+        await loadTrackers();
         message.success("Tracking entry deleted successfully");
       } catch (err) {
         setAppError(err as string);
@@ -222,11 +214,8 @@ function App() {
         await invoke("truncate_tables");
         // Reload data after truncation
         setTrackers([]);
-        setTrackerLines([]);
         setSelectedTracker(null);
-        setActiveLines([]);
         await loadTrackers();
-        await loadTrackerLines();
         message.success("All data cleared successfully");
       } catch (err) {
         setAppError(err as string);
@@ -316,7 +305,6 @@ function App() {
             <Col xs={24} lg={10} style={{ height: "100%", minHeight: "300px" }}>
               <TrackerCard
                 trackers={trackers}
-                trackerLines={trackerLines}
                 selectedTracker={selectedTracker}
                 liveDurations={liveDurations}
                 onCreateTracker={createTracker}
@@ -331,7 +319,6 @@ function App() {
             <Col xs={24} lg={14} style={{ height: "100%", minHeight: "400px" }}>
               <TrackerDetails
                 selectedTracker={selectedTracker}
-                trackerLines={trackerLines}
                 liveDurations={liveDurations}
                 onStartTracking={startTracking}
                 onStopTracking={stopTracking}

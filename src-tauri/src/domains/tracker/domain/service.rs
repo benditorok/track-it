@@ -23,10 +23,6 @@ pub trait TrackerServiceTrait: Send + Sync {
         &self,
     ) -> Pin<Box<dyn Future<Output = Result<Vec<TrackerEntryViewDto>, AppError>> + Send + '_>>;
 
-    fn get_tracker_lines(
-        &self,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<TrackerEntryLineViewDto>, AppError>> + Send + '_>>;
-
     fn start_tracking(
         &self,
         dto: TrackerEntryLineCreateDto,

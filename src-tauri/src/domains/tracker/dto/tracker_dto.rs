@@ -35,6 +35,7 @@ pub struct TrackerEntryViewDto {
     pub label: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub lines: Vec<TrackerEntryLineViewDto>,
 }
 
 impl Default for TrackerEntryViewDto {
@@ -44,6 +45,7 @@ impl Default for TrackerEntryViewDto {
             label: String::new(),
             created_at: Utc::now(),
             updated_at: Utc::now(),
+            lines: Vec::new(),
         }
     }
 }
@@ -55,6 +57,7 @@ impl From<TrackerEntry> for TrackerEntryViewDto {
             label: entry.label,
             created_at: entry.created_at,
             updated_at: entry.updated_at,
+            lines: Vec::new(),
         }
     }
 }

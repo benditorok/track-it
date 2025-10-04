@@ -8,7 +8,6 @@ const { Title, Text } = Typography;
 
 interface TrackerDetailsProps {
   selectedTracker: TrackerEntry | null;
-  trackerLines: TrackerLine[];
   liveDurations: Map<number, string>;
   onStartTracking: (entryId: number, description: string) => void;
   onStopTracking: (line: TrackerLine) => void;
@@ -20,7 +19,6 @@ interface TrackerDetailsProps {
 
 export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
   selectedTracker,
-  trackerLines,
   liveDurations,
   onStartTracking,
   onStopTracking,
@@ -38,15 +36,8 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
     }
   };
 
-  const getTrackerLines = (trackerId: number) => {
-    return trackerLines.filter((line) => line.entry_id === trackerId);
-  };
-
-  const getActiveLineForTracker = (trackerId: number) => {
-    return (
-      trackerLines.find((line) => line.entry_id === trackerId && line.durations.some((d) => d.ended_at === null)) ||
-      null
-    );
+  const getActiveLineForTracker = (tracker: TrackerEntry) => {
+    return tracker.lines.find((line) => line.durations.some((d) => d.ended_at === null)) || null;
   };
 
   if (!selectedTracker) {
@@ -70,8 +61,8 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
     );
   }
 
-  const activeLine = getActiveLineForTracker(selectedTracker.id);
-  const lines = getTrackerLines(selectedTracker.id);
+  const activeLine = getActiveLineForTracker(selectedTracker);
+  const lines = selectedTracker.lines;
 
   return (
     <Card

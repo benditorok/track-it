@@ -56,36 +56,34 @@ impl TrackerServiceTrait for TrackerService {
         Box::pin(async move {
             let entries = self.repo.get_all_entries(self.pool.clone()).await?;
 
-            let dtos: Vec<TrackerEntryViewDto> =
-                entries.into_iter().map(TrackerEntryViewDto::from).collect();
+            let mut dtos: Vec<TrackerEntryViewDto> = Vec::new();
 
-            Ok(dtos)
-        })
-    }
-
-    fn get_tracker_lines(
-        &self,
-    ) -> std::pin::Pin<
-        Box<dyn Future<Output = Result<Vec<TrackerEntryLineViewDto>, AppError>> + Send + '_>,
-    > {
-        Box::pin(async move {
-            let lines = self.repo.get_all_entry_lines(self.pool.clone()).await?;
-
-            let mut dtos: Vec<TrackerEntryLineViewDto> = Vec::new();
-
-            for line in lines {
-                let durations = self
+            for entry in entries {
+                let lines = self
                     .repo
-                    .get_line_durations(self.pool.clone(), line.clone())
+                    .get_lines_for_entry(self.pool.clone(), entry.clone())
                     .await?;
-                let duration_dtos: Vec<TrackerEntryLineDurationViewDto> = durations
-                    .into_iter()
-                    .map(TrackerEntryLineDurationViewDto::from)
-                    .collect();
 
-                let mut line_dto = TrackerEntryLineViewDto::from(line);
-                line_dto.durations = duration_dtos;
-                dtos.push(line_dto);
+                let mut line_dtos: Vec<TrackerEntryLineViewDto> = Vec::new();
+
+                for line in lines {
+                    let durations = self
+                        .repo
+                        .get_line_durations(self.pool.clone(), line.clone())
+                        .await?;
+                    let duration_dtos: Vec<TrackerEntryLineDurationViewDto> = durations
+                        .into_iter()
+                        .map(TrackerEntryLineDurationViewDto::from)
+                        .collect();
+
+                    let mut line_dto = TrackerEntryLineViewDto::from(line);
+                    line_dto.durations = duration_dtos;
+                    line_dtos.push(line_dto);
+                }
+
+                let mut entry_dto = TrackerEntryViewDto::from(entry);
+                entry_dto.lines = line_dtos;
+                dtos.push(entry_dto);
             }
 
             Ok(dtos)
@@ -144,7 +142,7 @@ impl TrackerServiceTrait for TrackerService {
                 updated_duration.ended_at = Some(Utc::now());
                 updated_duration.updated_at = Utc::now();
 
-                let updated = self
+                let _updated = self
                     .repo
                     .update_line_duration(self.pool.clone(), updated_duration)
                     .await?;
@@ -201,7 +199,7 @@ impl TrackerServiceTrait for TrackerService {
             // Create new duration entry
             let duration = TrackerEntryLineDuration::new(0, line.id, Utc::now(), None);
 
-            let created_duration = self
+            let _created_duration = self
                 .repo
                 .create_line_duration(self.pool.clone(), duration)
                 .await?;

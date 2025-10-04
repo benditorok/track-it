@@ -94,22 +94,6 @@ pub async fn create_tracker(
 }
 
 #[tauri::command]
-pub async fn get_tracker_lines(
-    state: State<'_, AppState>,
-) -> Result<Vec<TrackerEntryLineViewDto>, String> {
-    let service_guard = state.tracker_service.lock().await;
-
-    if let Some(service) = service_guard.as_ref() {
-        service
-            .get_tracker_lines()
-            .await
-            .map_err(|e| format!("Failed to get tracker lines: {}", e))
-    } else {
-        Err("Service not initialized".to_string())
-    }
-}
-
-#[tauri::command]
 pub async fn start_tracking(
     entry_id: i64,
     description: String,
@@ -211,15 +195,16 @@ pub async fn stop_all_active_tracking(
     let service_guard = state.tracker_service.lock().await;
 
     if let Some(service) = service_guard.as_ref() {
-        // Get all tracker lines
-        let all_lines = service
-            .get_tracker_lines()
+        // Get all trackers (which include their lines)
+        let all_trackers = service
+            .get_trackers()
             .await
-            .map_err(|e| format!("Failed to get tracker lines: {}", e))?;
+            .map_err(|e| format!("Failed to get trackers: {}", e))?;
 
-        // Find active lines (those with at least one duration without ended_at)
-        let active_lines: Vec<TrackerEntryLineViewDto> = all_lines
+        // Extract all lines from all trackers and find active ones
+        let active_lines: Vec<TrackerEntryLineViewDto> = all_trackers
             .into_iter()
+            .flat_map(|tracker| tracker.lines)
             .filter(|line| line.durations.iter().any(|d| d.ended_at.is_none()))
             .collect();
 
