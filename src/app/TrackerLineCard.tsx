@@ -1,4 +1,3 @@
-import React from "react";
 import { Card, Button, Typography, Space, Badge, Tooltip, Tag } from "antd";
 import { DeleteOutlined, StopOutlined, PlayCircleOutlined } from "@ant-design/icons";
 import { TrackerLine } from "../types/tracker.ts";
@@ -15,7 +14,7 @@ interface TrackerLineCardProps {
   formatTime: (dateString: string) => string;
 }
 
-export const TrackerLineCard: React.FC<TrackerLineCardProps> = ({
+export function TrackerLineCard({
   line,
   liveDuration,
   onDelete,
@@ -23,7 +22,7 @@ export const TrackerLineCard: React.FC<TrackerLineCardProps> = ({
   onResume,
   formatDuration,
   formatTime,
-}) => {
+}: TrackerLineCardProps) {
   const activeDuration = line.durations.find((d) => d.ended_at === null);
   const isActive = activeDuration !== undefined;
 
@@ -154,4 +153,4 @@ export const TrackerLineCard: React.FC<TrackerLineCardProps> = ({
       </Space>
     </Card>
   );
-};
+}
