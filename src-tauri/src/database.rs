@@ -56,7 +56,10 @@ pub async fn truncate_tables(
     // Purge the database by deleting all data from tables in correct order
     log::info!("Truncating tables...");
 
-    // Delete tracker lines first due to foreign key constraints
+    // Delete tables in correct order because of foreign key constraints
+    sqlx::query("DELETE FROM tracker_entry_line_duration")
+        .execute(pool)
+        .await?;
     sqlx::query("DELETE FROM tracker_entry_line")
         .execute(pool)
         .await?;
@@ -66,7 +69,7 @@ pub async fn truncate_tables(
 
     // Reset auto-increment counters
     sqlx::query(
-        "DELETE FROM sqlite_sequence WHERE name IN ('tracker_entry', 'tracker_entry_line')",
+        "DELETE FROM sqlite_sequence WHERE name IN ('tracker_entry', 'tracker_entry_line', 'tracker_entry_line_duration')",
     )
     .execute(pool)
     .await?;
