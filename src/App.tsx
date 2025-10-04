@@ -31,8 +31,11 @@ function App() {
     const interval = setInterval(() => {
       const newDurations = new Map<number, string>();
       activeLines.forEach((line) => {
-        const duration = formatDuration(line.started_at, null);
-        newDurations.set(line.id, duration);
+        const activeDuration = line.durations.find((d) => d.ended_at === null);
+        if (activeDuration) {
+          const duration = formatDuration(activeDuration.started_at, null);
+          newDurations.set(line.id, duration);
+        }
       });
       setLiveDurations(newDurations);
     }, 1000);
@@ -96,7 +99,7 @@ function App() {
 
   // Update active lines when tracker lines change
   useEffect(() => {
-    const active = trackerLines.filter((line) => line.ended_at === null);
+    const active = trackerLines.filter((line) => line.durations.some((d) => d.ended_at === null));
     setActiveLines(active);
   }, [trackerLines]);
 
@@ -151,13 +154,23 @@ function App() {
     try {
       const updatedLine = await invoke<TrackerLine>("stop_tracking", {
         lineId: line.id,
-        entryId: line.entry_id,
-        description: line.desc,
-        startedAt: line.started_at,
       });
 
       setTrackerLines((prev) => prev.map((l) => (l.id === updatedLine.id ? updatedLine : l)));
       message.success("Tracking stopped successfully");
+    } catch (err) {
+      setAppError(err as string);
+    }
+  };
+
+  const resumeTracking = async (line: TrackerLine) => {
+    try {
+      const updatedLine = await invoke<TrackerLine>("resume_tracking", {
+        lineId: line.id,
+      });
+
+      setTrackerLines((prev) => prev.map((l) => (l.id === updatedLine.id ? updatedLine : l)));
+      message.success("Tracking resumed successfully");
     } catch (err) {
       setAppError(err as string);
     }
@@ -322,6 +335,7 @@ function App() {
                 liveDurations={liveDurations}
                 onStartTracking={startTracking}
                 onStopTracking={stopTracking}
+                onResumeTracking={resumeTracking}
                 onDeleteTrackerLine={deleteTrackerLine}
                 formatDuration={formatDuration}
                 formatTime={formatTime}

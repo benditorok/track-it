@@ -12,6 +12,7 @@ interface TrackerDetailsProps {
   liveDurations: Map<number, string>;
   onStartTracking: (entryId: number, description: string) => void;
   onStopTracking: (line: TrackerLine) => void;
+  onResumeTracking: (line: TrackerLine) => void;
   onDeleteTrackerLine: (line: TrackerLine) => void;
   formatDuration: (startedAt: string, endedAt: string | null) => string;
   formatTime: (dateString: string) => string;
@@ -23,6 +24,7 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
   liveDurations,
   onStartTracking,
   onStopTracking,
+  onResumeTracking,
   onDeleteTrackerLine,
   formatDuration,
   formatTime,
@@ -41,7 +43,10 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
   };
 
   const getActiveLineForTracker = (trackerId: number) => {
-    return trackerLines.find((line) => line.entry_id === trackerId && line.ended_at === null) || null;
+    return (
+      trackerLines.find((line) => line.entry_id === trackerId && line.durations.some((d) => d.ended_at === null)) ||
+      null
+    );
   };
 
   if (!selectedTracker) {
@@ -110,14 +115,15 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
           <Empty description="No tracking entries yet. Start tracking above!" />
         ) : (
           <List
-            dataSource={lines.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())}
+            dataSource={lines.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())}
             renderItem={(line) => (
               <List.Item>
                 <TrackerLineCard
                   line={line}
                   liveDuration={liveDurations.get(line.id)}
                   onDelete={onDeleteTrackerLine}
-                  onStop={line.ended_at === null ? onStopTracking : undefined}
+                  onStop={line.durations.some((d) => d.ended_at === null) ? onStopTracking : undefined}
+                  onResume={!line.durations.some((d) => d.ended_at === null) ? onResumeTracking : undefined}
                   formatDuration={formatDuration}
                   formatTime={formatTime}
                 />

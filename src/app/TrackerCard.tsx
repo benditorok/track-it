@@ -42,7 +42,10 @@ export const TrackerCard: React.FC<TrackerCardProps> = ({
   };
 
   const getActiveLineForTracker = (trackerId: number) => {
-    return trackerLines.find((line) => line.entry_id === trackerId && line.ended_at === null) || null;
+    return (
+      trackerLines.find((line) => line.entry_id === trackerId && line.durations.some((d) => d.ended_at === null)) ||
+      null
+    );
   };
 
   return (
@@ -109,7 +112,12 @@ export const TrackerCard: React.FC<TrackerCardProps> = ({
                         <Tag icon={<FieldTimeOutlined />}>{lines.length} entries</Tag>
                         {activeLine && (
                           <Tag color="green" icon={<ClockCircleOutlined />} style={{ animation: "pulse 2s infinite" }}>
-                            Running: {liveDurations.get(activeLine.id) || formatDuration(activeLine.started_at, null)}
+                            Running:{" "}
+                            {liveDurations.get(activeLine.id) ||
+                              (() => {
+                                const activeDuration = activeLine.durations.find((d) => d.ended_at === null);
+                                return activeDuration ? formatDuration(activeDuration.started_at, null) : "N/A";
+                              })()}
                           </Tag>
                         )}
                       </Space>
