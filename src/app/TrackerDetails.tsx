@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card, Button, Input, Typography, Space, List, Empty, Badge, Divider, Segmented } from "antd";
 import { PlayCircleOutlined, CalendarOutlined, UnorderedListOutlined } from "@ant-design/icons";
 import { TrackerEntry, TrackerLine } from "../types/tracker.ts";
@@ -17,7 +17,7 @@ interface TrackerDetailsProps {
   formatTime: (dateString: string) => string;
 }
 
-export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
+export function TrackerDetails({
   selectedTracker,
   liveDurations,
   onStartTracking,
@@ -26,7 +26,7 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
   onDeleteTrackerLine,
   formatDuration,
   formatTime,
-}) => {
+}: TrackerDetailsProps) {
   const [newLineDesc, setNewLineDesc] = useState("");
   const [filter, setFilter] = useState<"all" | "today">("all");
 
@@ -152,4 +152,4 @@ export const TrackerDetails: React.FC<TrackerDetailsProps> = ({
       )}
     </Card>
   );
-};
+}
