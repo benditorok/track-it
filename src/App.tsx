@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { TrackerEntry, TrackerLine } from "./types/tracker.ts";
 import { Layout, Button, Typography, Space, Spin, Alert, Row, Col, message, Flex } from "antd";
@@ -46,41 +45,6 @@ function App() {
 
     return () => clearInterval(interval);
   }, [trackers]);
-
-  // Handle window close event to stop active tracking
-  useEffect(() => {
-    const appWindow = getCurrentWindow();
-
-    const setupCloseHandler = async () => {
-      const unlisten = await appWindow.onCloseRequested(async (event) => {
-        const confirmed = await confirm("Are you sure you want to exit the application and stop all active trackers?");
-        if (!confirmed) {
-          // Prevent the window from closing if the user cancels
-          event.preventDefault();
-          return;
-        }
-
-        try {
-          // Perform cleanup
-          await invoke("stop_all_active_tracking");
-          await loadTrackers();
-          await new Promise((r) => setTimeout(r, 500));
-        } catch (err) {
-          console.error("Error in close handler:", err);
-        }
-      });
-
-      return unlisten;
-    };
-
-    const unlistenPromise = setupCloseHandler();
-
-    return () => {
-      unlistenPromise.then((unlisten) => {
-        unlisten();
-      });
-    };
-  }, []);
 
   // Initialize the app
   useEffect(() => {
