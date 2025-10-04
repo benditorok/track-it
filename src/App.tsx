@@ -256,15 +256,14 @@ function App() {
 
       <Content
         style={{
-          padding: "16px",
           display: "flex",
           flexDirection: "column",
           minHeight: "calc(100vh - 64px)",
           overflow: "auto",
         }}
       >
-        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-          <Row gutter={[16, 16]} style={{ flex: 1, minHeight: 0 }}>
+        <div style={{ flex: 1, padding: "16px", paddingBottom: 0, overflow: "hidden" }}>
+          <Row gutter={[16, 16]} style={{ height: "100%", margin: 0 }}>
             {/* Left Panel - Trackers */}
             <Col xs={24} lg={10} style={{ height: "100%", minHeight: "300px" }}>
               <TrackerCard
@@ -298,13 +297,9 @@ function App() {
         <div
           style={{
             textAlign: "center",
-            marginTop: 16,
-            paddingTop: 16,
-            paddingBottom: 16,
+            padding: "16px",
             borderTop: "1px solid #f0f0f0",
-            flexShrink: 0,
             backgroundColor: "#fff",
-            width: "100%",
           }}
         >
           <Button danger icon={<ClearOutlined />} onClick={truncateAllData} size="large">

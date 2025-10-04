@@ -93,20 +93,33 @@ export const TrackerLineCard: React.FC<TrackerLineCardProps> = ({
                 }}
               >
                 <Space direction="vertical" size="small" style={{ width: "100%" }}>
-                  <Space>
-                    <Text type="secondary">Session {line.durations.length - index}:</Text>
-                    <Text type="secondary">{formatTime(duration.started_at)}</Text>
+                  <Text type="secondary" strong>
+                    Session {line.durations.length - index}
+                  </Text>
+                  <Space direction="vertical" size={4} style={{ width: "100%" }}>
+                    <Space size={4} wrap>
+                      <Text type="secondary" style={{ fontSize: "12px" }}>
+                        Start:
+                      </Text>
+                      <Text type="secondary" style={{ fontSize: "12px" }}>
+                        {formatTime(duration.started_at)}
+                      </Text>
+                    </Space>
                     {duration.ended_at && (
-                      <>
-                        <Text type="secondary">→</Text>
-                        <Text type="secondary">{formatTime(duration.ended_at)}</Text>
-                      </>
+                      <Space size={4} wrap>
+                        <Text type="secondary" style={{ fontSize: "12px" }}>
+                          End:
+                        </Text>
+                        <Text type="secondary" style={{ fontSize: "12px" }}>
+                          {formatTime(duration.ended_at)}
+                        </Text>
+                      </Space>
                     )}
                   </Space>
                   {duration.ended_at ? (
                     <Text strong>Duration: {formatDuration(duration.started_at, duration.ended_at)}</Text>
                   ) : (
-                    <Space>
+                    <Space wrap>
                       <Badge status="processing" />
                       <Text
                         strong
