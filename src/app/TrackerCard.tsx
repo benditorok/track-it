@@ -63,14 +63,13 @@ export function TrackerCard({
             const isSelected = selectedTracker?.id === tracker.id;
 
             return (
-              <List.Item style={{ padding: 0, marginBottom: 8 }}>
+              <List.Item style={{ padding: 0, marginTop: 8 }}>
                 <Card
                   size="small"
+                  className={isSelected ? "tracker-card-selected" : activeLine ? "tracker-card-active" : ""}
                   style={{
                     width: "100%",
                     cursor: "pointer",
-                    border: isSelected ? "2px solid #1890ff" : activeLine ? "2px solid #52c41a" : undefined,
-                    backgroundColor: isSelected ? "#f6ffed" : activeLine ? "#f6ffed" : undefined,
                   }}
                   onClick={() => onSelectTracker(tracker)}
                   extra={
@@ -96,7 +95,7 @@ export function TrackerCard({
                     <Space wrap>
                       <Tag icon={<FieldTimeOutlined />}>{tracker.lines.length} entries</Tag>
                       {activeLine && (
-                        <Tag color="green" icon={<ClockCircleOutlined />} style={{ animation: "pulse 2s infinite" }}>
+                        <Tag color="green" icon={<ClockCircleOutlined />} className="active-tag-pulse">
                           Running:{" "}
                           {liveDurations.get(activeLine.id) ||
                             (() => {
@@ -108,7 +107,7 @@ export function TrackerCard({
                     </Space>
 
                     {activeLine && (
-                      <Card size="small" style={{ backgroundColor: "#f6ffed", border: "1px solid #b7eb8f" }}>
+                      <Card size="small" className="active-line-card">
                         <Space direction="vertical" style={{ width: "100%" }} size="small">
                           <Typography.Text italic>"{activeLine.desc}"</Typography.Text>
                           <Button

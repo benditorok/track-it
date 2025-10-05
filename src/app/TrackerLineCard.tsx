@@ -53,10 +53,9 @@ export function TrackerLineCard({
   return (
     <Card
       size="small"
+      className={isActive ? "tracker-line-active" : ""}
       style={{
         width: "100%",
-        border: isActive ? "2px solid #52c41a" : undefined,
-        backgroundColor: isActive ? "#f6ffed" : undefined,
       }}
       extra={
         <Tooltip title="Delete entry">
@@ -86,10 +85,7 @@ export function TrackerLineCard({
               <Card
                 key={duration.id}
                 size="small"
-                style={{
-                  backgroundColor: duration.ended_at ? "#fafafa" : "#f6ffed",
-                  border: duration.ended_at ? "1px solid #d9d9d9" : "1px solid #b7eb8f",
-                }}
+                className={duration.ended_at ? "session-card-inactive" : "session-card-active"}
               >
                 <Space direction="vertical" size="small" style={{ width: "100%" }}>
                   <Text type="secondary" strong>
@@ -120,13 +116,7 @@ export function TrackerLineCard({
                   ) : (
                     <Space wrap>
                       <Badge status="processing" />
-                      <Text
-                        strong
-                        style={{
-                          color: "#52c41a",
-                          animation: "pulse 2s infinite",
-                        }}
-                      >
+                      <Text strong className="active-text-pulse">
                         Live: {liveDuration || formatDuration(duration.started_at, null)}
                       </Text>
                     </Space>

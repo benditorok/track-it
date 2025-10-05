@@ -70,6 +70,11 @@ function App() {
     setStoredTheme(newTheme);
   };
 
+  // Set data-theme attribute on root element
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
+
   // Get all active lines from all trackers
   const getAllActiveLines = (): TrackerLine[] => {
     return trackers.flatMap((tracker) =>
@@ -290,16 +295,7 @@ function App() {
       }}
     >
       <Layout style={{ height: "calc(100vh - 16px)", display: "flex", flexDirection: "column" }}>
-        <style>
-          {`
-            @keyframes pulse {
-              0% { opacity: 1; }
-              50% { opacity: 0.7; }
-              100% { opacity: 1; }
-            }
-          `}
-        </style>
-        <Header style={{ padding: "0 24px", borderBottom: isDarkMode ? "1px solid #303030" : "1px solid #f0f0f0" }}>
+        <Header className="app-header" style={{ padding: "0 24px" }}>
           <Flex gap="middle" align="center" justify="space-between" style={{ height: "100%" }}>
             <Flex gap="middle" align="center">
               <ClockCircleOutlined style={{ fontSize: "24px", color: "#1890ff" }} />
@@ -348,14 +344,7 @@ function App() {
           </Row>
         </Content>
 
-        <div
-          style={{
-            padding: "8px 16px",
-            borderTop: isDarkMode ? "1px solid #303030" : "1px solid #f0f0f0",
-            display: "flex",
-            justifyContent: "flex-end",
-          }}
-        >
+        <div className="app-footer" style={{ padding: "8px 16px", display: "flex", justifyContent: "flex-end" }}>
           <Button danger icon={<ClearOutlined />} onClick={truncateAllData} size="small">
             Clear All Data
           </Button>
