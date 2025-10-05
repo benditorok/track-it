@@ -1,112 +1,130 @@
+/* CSS Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
 /* Theme Variables */
 :root[data-theme="light"] {
-  --header-bg: #ffffff;
-  --header-border: #f0f0f0;
-  --footer-border: #f0f0f0;
+    --header-bg: #ffffff;
+    --header-border: #f0f0f0;
+    --footer-border: #f0f0f0;
 
-  --active-card-bg: #f6ffed;
-  --active-card-border: #b7eb8f;
-  --active-card-hover-bg: #f0f9e8;
+    --active-card-bg: #f6ffed;
+    --active-card-border: #b7eb8f;
+    --active-card-hover-bg: #f0f9e8;
 
-  --selected-card-bg: #f6ffed;
-  --selected-card-border: #1890ff;
+    --selected-card-bg: #f6ffed;
+    --selected-card-border: #1890ff;
 
-  --inactive-card-bg: #fafafa;
-  --inactive-card-border: #d9d9d9;
+    --inactive-card-bg: #fafafa;
+    --inactive-card-border: #d9d9d9;
 
-  --session-card-bg: #fafafa;
-  --session-card-border: #d9d9d9;
-  --session-active-bg: #f6ffed;
-  --session-active-border: #b7eb8f;
+    --session-card-bg: #fafafa;
+    --session-card-border: #d9d9d9;
+    --session-active-bg: #f6ffed;
+    --session-active-border: #b7eb8f;
 
-  --active-text-color: #52c41a;
-  --active-pulse-color: #52c41a;
+    --active-text-color: #52c41a;
+    --active-pulse-color: #52c41a;
 }
 
 :root[data-theme="dark"] {
-  --header-bg: #141414;
-  --header-border: #303030;
-  --footer-border: #303030;
+    --header-bg: #141414;
+    --header-border: #303030;
+    --footer-border: #303030;
 
-  --active-card-bg: #162312;
-  --active-card-border: #274916;
-  --active-card-hover-bg: #1d3712;
+    --active-card-bg: #162312;
+    --active-card-border: #274916;
+    --active-card-hover-bg: #1d3712;
 
-  --selected-card-bg: #111d2c;
-  --selected-card-border: #1890ff;
+    --selected-card-bg: #111d2c;
+    --selected-card-border: #1890ff;
 
-  --inactive-card-bg: #1f1f1f;
-  --inactive-card-border: #434343;
+    --inactive-card-bg: #1f1f1f;
+    --inactive-card-border: #434343;
 
-  --session-card-bg: #1f1f1f;
-  --session-card-border: #434343;
-  --session-active-bg: #162312;
-  --session-active-border: #274916;
+    --session-card-bg: #1f1f1f;
+    --session-card-border: #434343;
+    --session-active-bg: #162312;
+    --session-active-border: #274916;
 
-  --active-text-color: #73d13d;
-  --active-pulse-color: #73d13d;
+    --active-text-color: #73d13d;
+    --active-pulse-color: #73d13d;
 }
 
 /* Pulse animation for active states */
 @keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.7; }
-  100% { opacity: 1; }
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 /* Header styles */
 .app-header {
-  background: var(--header-bg) !important;
-  border-bottom: 1px solid var(--header-border) !important;
+    background: var(--header-bg) !important;
+    border-bottom: 1px solid var(--header-border) !important;
 }
 
 /* Footer styles */
 .app-footer {
-  border-top: 1px solid var(--footer-border);
+    border-top: 1px solid var(--footer-border);
 }
 
 /* Active tracker card */
 .tracker-card-active {
-  background-color: var(--active-card-bg) !important;
-  border: 2px solid var(--active-card-border) !important;
+    background-color: var(--active-card-bg) !important;
+    border: 2px solid var(--active-card-border) !important;
 }
 
 /* Selected tracker card */
 .tracker-card-selected {
-  background-color: var(--selected-card-bg) !important;
-  border: 2px solid var(--selected-card-border) !important;
+    background-color: var(--selected-card-bg) !important;
+    border: 2px solid var(--selected-card-border) !important;
 }
 
 /* Active line nested card */
 .active-line-card {
-  background-color: var(--active-card-bg) !important;
-  border: 1px solid var(--active-card-border) !important;
+    background-color: var(--active-card-bg) !important;
+    border: 1px solid var(--active-card-border) !important;
 }
 
 /* Tracker line card active */
 .tracker-line-active {
-  background-color: var(--active-card-bg) !important;
-  border: 2px solid var(--active-card-border) !important;
+    background-color: var(--active-card-bg) !important;
+    border: 2px solid var(--active-card-border) !important;
 }
 
 /* Session cards */
 .session-card-inactive {
-  background-color: var(--session-card-bg) !important;
-  border: 1px solid var(--session-card-border) !important;
+    background-color: var(--session-card-bg) !important;
+    border: 1px solid var(--session-card-border) !important;
 }
 
 .session-card-active {
-  background-color: var(--session-active-bg) !important;
-  border: 1px solid var(--session-active-border) !important;
+    background-color: var(--session-active-bg) !important;
+    border: 1px solid var(--session-active-border) !important;
 }
 
 /* Active text with pulse */
 .active-text-pulse {
-  color: var(--active-text-color) !important;
-  animation: pulse 2s infinite;
+    color: var(--active-text-color) !important;
+    animation: pulse 2s infinite;
 }
 
 /* Active tag pulse */
 .active-tag-pulse {
-  animation: pulse 2s infinite;
+    animation: pulse 2s infinite;
 }

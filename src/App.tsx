@@ -294,7 +294,7 @@ function App() {
         algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
       }}
     >
-      <Layout style={{ height: "calc(100vh - 16px)", display: "flex", flexDirection: "column" }}>
+      <Layout style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
         <Header className="app-header" style={{ padding: "0 24px" }}>
           <Flex gap="middle" align="center" justify="space-between" style={{ height: "100%" }}>
             <Flex gap="middle" align="center">
