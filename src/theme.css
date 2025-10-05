@@ -14,6 +14,7 @@ body {
 :root[app-theme="light"] {
     --header-bg: #ffffff;
     --header-border: #f0f0f0;
+    --footer-bg: #ffffff;
     --footer-border: #f0f0f0;
 
     --active-card-bg: #f6ffed;
@@ -38,6 +39,7 @@ body {
 :root[app-theme="dark"] {
     --header-bg: #141414;
     --header-border: #303030;
+    --footer-bg: #141414;
     --footer-border: #303030;
 
     --active-card-bg: #162312;
@@ -80,6 +82,7 @@ body {
 
 /* Footer styles */
 .app-footer {
+    background: var(--footer-bg) !important;
     border-top: 1px solid var(--footer-border);
 }
 
