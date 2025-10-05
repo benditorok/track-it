@@ -12,6 +12,7 @@ interface TrackerLineCardProps {
   onResume?: (line: TrackerLine) => void;
   formatDuration: (startedAt: string, endedAt: string | null) => string;
   formatTime: (dateString: string) => string;
+  showTodayFilter?: boolean;
 }
 
 export function TrackerLineCard({
@@ -22,6 +23,7 @@ export function TrackerLineCard({
   onResume,
   formatDuration,
   formatTime,
+  showTodayFilter = false,
 }: TrackerLineCardProps) {
   const activeDuration = line.durations.find((d) => d.ended_at === null);
   const isActive = activeDuration !== undefined;
@@ -50,6 +52,25 @@ export function TrackerLineCard({
     }
   };
 
+  // Calculate today's duration if filter is active
+  const todayDuration = showTodayFilter
+    ? line.durations.reduce((total, duration) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const durationDate = new Date(duration.started_at);
+        durationDate.setHours(0, 0, 0, 0);
+
+        if (durationDate.getTime() === today.getTime()) {
+          if (duration.ended_at) {
+            const start = new Date(duration.started_at).getTime();
+            const end = new Date(duration.ended_at).getTime();
+            return total + (end - start);
+          }
+        }
+        return total;
+      }, 0)
+    : 0;
+
   return (
     <Card
       size="small"
@@ -76,6 +97,7 @@ export function TrackerLineCard({
           {line.durations.length > 0 && (
             <Text type="secondary">
               Sessions: {line.durations.length} | Total: {formatTotalDuration(totalDuration)}
+              {showTodayFilter && todayDuration > 0 && ` (Today: ${formatTotalDuration(todayDuration)})`}
             </Text>
           )}
 
