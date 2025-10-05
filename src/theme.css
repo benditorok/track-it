@@ -11,7 +11,7 @@ body {
 }
 
 /* Theme Variables */
-:root[data-theme="light"] {
+:root[app-theme="light"] {
     --header-bg: #ffffff;
     --header-border: #f0f0f0;
     --footer-border: #f0f0f0;
@@ -35,7 +35,7 @@ body {
     --active-pulse-color: #52c41a;
 }
 
-:root[data-theme="dark"] {
+:root[app-theme="dark"] {
     --header-bg: #141414;
     --header-border: #303030;
     --footer-border: #303030;

@@ -72,7 +72,7 @@ function App() {
 
   // Set data-theme attribute on root element
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", isDarkMode ? "dark" : "light");
+    document.documentElement.setAttribute("app-theme", isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
 
   // Get all active lines from all trackers
