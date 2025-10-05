@@ -1,5 +1,5 @@
-import { Card, Button, Typography, Space, Badge, Tooltip, Tag } from "antd";
-import { DeleteOutlined, StopOutlined, PlayCircleOutlined } from "@ant-design/icons";
+import { Card, Button, Typography, Space, Badge, Tooltip, Tag, Collapse } from "antd";
+import { DeleteOutlined, StopOutlined, PlayCircleOutlined, HistoryOutlined } from "@ant-design/icons";
 import { TrackerLine } from "../types/tracker.ts";
 
 const { Title, Text } = Typography;
@@ -79,51 +79,110 @@ export function TrackerLineCard({
             </Text>
           )}
 
-          {/* Show duration entries */}
+          {/* Show duration entries - Latest session visible, rest in collapse */}
           <Space direction="vertical" size="small" style={{ width: "100%", marginTop: 8 }}>
-            {line.durations.map((duration, index) => (
-              <Card
-                key={duration.id}
-                size="small"
-                className={duration.ended_at ? "session-card-inactive" : "session-card-active"}
-              >
-                <Space direction="vertical" size="small" style={{ width: "100%" }}>
-                  <Text type="secondary" strong>
-                    Session {line.durations.length - index}
-                  </Text>
-                  <Space direction="vertical" size={4} style={{ width: "100%" }}>
-                    <Space size={4} wrap>
-                      <Text type="secondary" style={{ fontSize: "12px" }}>
-                        Start:
-                      </Text>
-                      <Text type="secondary" style={{ fontSize: "12px" }}>
-                        {formatTime(duration.started_at)}
-                      </Text>
-                    </Space>
-                    {duration.ended_at && (
+            {line.durations.length > 0 && (
+              <>
+                {/* Latest Session (always visible) */}
+                <Card
+                  key={line.durations[0].id}
+                  size="small"
+                  className={line.durations[0].ended_at ? "session-card-inactive" : "session-card-active"}
+                >
+                  <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                    <Text type="secondary" strong>
+                      Latest Session
+                    </Text>
+                    <Space direction="vertical" size={4} style={{ width: "100%" }}>
                       <Space size={4} wrap>
                         <Text type="secondary" style={{ fontSize: "12px" }}>
-                          End:
+                          Start:
                         </Text>
                         <Text type="secondary" style={{ fontSize: "12px" }}>
-                          {formatTime(duration.ended_at)}
+                          {formatTime(line.durations[0].started_at)}
+                        </Text>
+                      </Space>
+                      {line.durations[0].ended_at && (
+                        <Space size={4} wrap>
+                          <Text type="secondary" style={{ fontSize: "12px" }}>
+                            End:
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: "12px" }}>
+                            {formatTime(line.durations[0].ended_at)}
+                          </Text>
+                        </Space>
+                      )}
+                    </Space>
+                    {line.durations[0].ended_at ? (
+                      <Text strong>
+                        Duration: {formatDuration(line.durations[0].started_at, line.durations[0].ended_at)}
+                      </Text>
+                    ) : (
+                      <Space wrap>
+                        <Badge status="processing" />
+                        <Text strong className="active-text-pulse">
+                          Live: {liveDuration || formatDuration(line.durations[0].started_at, null)}
                         </Text>
                       </Space>
                     )}
                   </Space>
-                  {duration.ended_at ? (
-                    <Text strong>Duration: {formatDuration(duration.started_at, duration.ended_at)}</Text>
-                  ) : (
-                    <Space wrap>
-                      <Badge status="processing" />
-                      <Text strong className="active-text-pulse">
-                        Live: {liveDuration || formatDuration(duration.started_at, null)}
-                      </Text>
-                    </Space>
-                  )}
-                </Space>
-              </Card>
-            ))}
+                </Card>
+
+                {/* Previous Sessions (in collapse) */}
+                {line.durations.length > 1 && (
+                  <Collapse
+                    size="small"
+                    items={[
+                      {
+                        key: "previous-sessions",
+                        label: (
+                          <Space>
+                            <HistoryOutlined />
+                            <Text>Previous Sessions ({line.durations.length - 1})</Text>
+                          </Space>
+                        ),
+                        children: (
+                          <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                            {line.durations.slice(1).map((duration, index) => (
+                              <Card key={duration.id} size="small" className="session-card-inactive">
+                                <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                                  <Text type="secondary" strong>
+                                    Session {line.durations.length - index - 1}
+                                  </Text>
+                                  <Space direction="vertical" size={4} style={{ width: "100%" }}>
+                                    <Space size={4} wrap>
+                                      <Text type="secondary" style={{ fontSize: "12px" }}>
+                                        Start:
+                                      </Text>
+                                      <Text type="secondary" style={{ fontSize: "12px" }}>
+                                        {formatTime(duration.started_at)}
+                                      </Text>
+                                    </Space>
+                                    {duration.ended_at && (
+                                      <Space size={4} wrap>
+                                        <Text type="secondary" style={{ fontSize: "12px" }}>
+                                          End:
+                                        </Text>
+                                        <Text type="secondary" style={{ fontSize: "12px" }}>
+                                          {formatTime(duration.ended_at)}
+                                        </Text>
+                                      </Space>
+                                    )}
+                                  </Space>
+                                  <Text strong>
+                                    Duration: {formatDuration(duration.started_at, duration.ended_at!)}
+                                  </Text>
+                                </Space>
+                              </Card>
+                            ))}
+                          </Space>
+                        ),
+                      },
+                    ]}
+                  />
+                )}
+              </>
+            )}
           </Space>
         </Space>
 
