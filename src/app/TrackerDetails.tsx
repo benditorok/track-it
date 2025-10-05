@@ -145,6 +145,7 @@ export function TrackerDetails({
                 onResume={!line.durations.some((d) => d.ended_at === null) ? onResumeTracking : undefined}
                 formatDuration={formatDuration}
                 formatTime={formatTime}
+                showTodayFilter={filter === "today"}
               />
             </List.Item>
           )}

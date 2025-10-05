@@ -2,14 +2,43 @@ import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { TrackerEntry, TrackerLine } from "./types/tracker.ts";
-import { Layout, Button, Typography, Space, Spin, Alert, Row, Col, message, Flex } from "antd";
-import { ClockCircleOutlined, ClearOutlined } from "@ant-design/icons";
+import { Layout, Button, Typography, Space, Spin, Alert, Row, Col, message, Flex, ConfigProvider, theme } from "antd";
+import { ClockCircleOutlined, ClearOutlined, BulbOutlined, BulbFilled } from "@ant-design/icons";
 import { TrackerCard, TrackerDetails } from "./app/index.ts";
+import { Tooltip } from "antd/lib/index";
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
 
+// Theme management
+const getSystemTheme = (): "light" | "dark" => {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+};
+
+const getStoredTheme = (): "light" | "dark" | null => {
+  try {
+    const stored = localStorage.getItem("theme");
+    return stored === "light" || stored === "dark" ? stored : null;
+  } catch {
+    return null;
+  }
+};
+
+const setStoredTheme = (theme: "light" | "dark") => {
+  try {
+    localStorage.setItem("theme", theme);
+  } catch {
+    // Ignore localStorage errors
+  }
+};
+
 function App() {
+  // Theme state - initialize with stored preference or system preference
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    const stored = getStoredTheme();
+    return stored ? stored === "dark" : getSystemTheme() === "dark";
+  });
+
   const [appInitialized, setInitialized] = useState(false);
   const [loading, setLoading] = useState(false);
   const [appError, setAppError] = useState<string | null>(null);
@@ -20,6 +49,32 @@ function App() {
 
   // Live duration updates
   const [liveDurations, setLiveDurations] = useState<Map<number, string>>(new Map());
+
+  // Listen for system theme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e: MediaQueryListEvent) => {
+      // Only update if user hasn't set a preference
+      if (getStoredTheme() === null) {
+        setIsDarkMode(e.matches);
+      }
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
+  // Toggle theme
+  const toggleTheme = () => {
+    const newTheme = isDarkMode ? "light" : "dark";
+    setIsDarkMode(!isDarkMode);
+    setStoredTheme(newTheme);
+  };
+
+  // Set data-theme attribute on root element
+  useEffect(() => {
+    document.documentElement.setAttribute("app-theme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
 
   // Get all active lines from all trackers
   const getAllActiveLines = (): TrackerLine[] => {
@@ -235,63 +290,70 @@ function App() {
   }
 
   return (
-    <Layout style={{ height: "calc(100vh - 16px)", display: "flex", flexDirection: "column" }}>
-      <style>
-        {`
-            @keyframes pulse {
-              0% { opacity: 1; }
-              50% { opacity: 0.7; }
-              100% { opacity: 1; }
-            }
-          `}
-      </style>
-      <Header style={{ background: "#fff", padding: "0 24px", borderBottom: "1px solid #f0f0f0" }}>
-        <Flex gap="middle" align="center" justify="flex-start" style={{ height: "100%" }}>
-          <ClockCircleOutlined style={{ fontSize: "24px", color: "#1890ff" }} />
-          <Title level={2} style={{ margin: 0, color: "#1890ff" }}>
-            track-it
-          </Title>
-        </Flex>
-      </Header>
+    <ConfigProvider
+      theme={{
+        algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
+      }}
+    >
+      <Layout style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+        <Header className="app-header" style={{ padding: "0 24px" }}>
+          <Flex gap="middle" align="center" justify="space-between" style={{ height: "100%" }}>
+            <Flex gap="middle" align="center">
+              <ClockCircleOutlined style={{ fontSize: "24px", color: "#1890ff" }} />
+              <Title level={2} style={{ margin: 0, color: "#1890ff" }}>
+                track-it
+              </Title>
+            </Flex>
+            <Tooltip title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}>
+              <Button
+                type="text"
+                size="small"
+                icon={isDarkMode ? <BulbFilled style={{ color: "#faad14" }} /> : <BulbOutlined />}
+                onClick={toggleTheme}
+              />
+            </Tooltip>
+          </Flex>
+        </Header>
 
-      <Content style={{ flex: 1, overflow: "auto", padding: "16px" }}>
-        <Row gutter={[16, 16]}>
-          {/* Left Panel - Trackers */}
-          <Col xs={24} lg={10}>
-            <TrackerCard
-              trackers={trackers}
-              selectedTracker={selectedTracker}
-              liveDurations={liveDurations}
-              onCreateTracker={createTracker}
-              onDeleteTracker={deleteTracker}
-              onSelectTracker={setSelectedTracker}
-              onStopTracking={stopTracking}
-              formatDuration={formatDuration}
-            />
-          </Col>
+        <Content style={{ flex: 1, overflow: "auto", padding: "16px" }}>
+          <Row gutter={[16, 16]}>
+            {/* Left Panel - Trackers */}
+            <Col xs={24} lg={10}>
+              <TrackerCard
+                trackers={trackers}
+                selectedTracker={selectedTracker}
+                liveDurations={liveDurations}
+                onCreateTracker={createTracker}
+                onDeleteTracker={deleteTracker}
+                onSelectTracker={setSelectedTracker}
+                onStopTracking={stopTracking}
+                formatDuration={formatDuration}
+              />
+            </Col>
 
-          {/* Right Panel - Selected Tracker Details */}
-          <Col xs={24} lg={14}>
-            <TrackerDetails
-              selectedTracker={selectedTracker}
-              liveDurations={liveDurations}
-              onStartTracking={startTracking}
-              onStopTracking={stopTracking}
-              onResumeTracking={resumeTracking}
-              onDeleteTrackerLine={deleteTrackerLine}
-              formatDuration={formatDuration}
-              formatTime={formatTime}
-            />
-          </Col>
-        </Row>
-      </Content>
+            {/* Right Panel - Selected Tracker Details */}
+            <Col xs={24} lg={14}>
+              <TrackerDetails
+                selectedTracker={selectedTracker}
+                liveDurations={liveDurations}
+                onStartTracking={startTracking}
+                onStopTracking={stopTracking}
+                onResumeTracking={resumeTracking}
+                onDeleteTrackerLine={deleteTrackerLine}
+                formatDuration={formatDuration}
+                formatTime={formatTime}
+              />
+            </Col>
+          </Row>
+        </Content>
 
-      <div style={{ padding: "8px 16px", borderTop: "1px solid #f0f0f0", display: "flex", justifyContent: "flex-end" }}>
-        <Button danger icon={<ClearOutlined />} onClick={truncateAllData} size="small">
-          Clear All Data
-        </Button>
-      </div>
-    </Layout>
+        <div className="app-footer" style={{ padding: "8px 16px", display: "flex", justifyContent: "flex-end" }}>
+          <Button danger icon={<ClearOutlined />} onClick={truncateAllData} size="small">
+            Clear All Data
+          </Button>
+        </div>
+      </Layout>
+    </ConfigProvider>
   );
 }
 
