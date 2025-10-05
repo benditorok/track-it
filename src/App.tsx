@@ -5,6 +5,7 @@ import { TrackerEntry, TrackerLine } from "./types/tracker.ts";
 import { Layout, Button, Typography, Space, Spin, Alert, Row, Col, message, Flex, ConfigProvider, theme } from "antd";
 import { ClockCircleOutlined, ClearOutlined, BulbOutlined, BulbFilled } from "@ant-design/icons";
 import { TrackerCard, TrackerDetails } from "./app/index.ts";
+import { Tooltip } from "antd/lib/index";
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -303,12 +304,14 @@ function App() {
                 track-it
               </Title>
             </Flex>
-            <Button
-              type="text"
-              icon={isDarkMode ? <BulbFilled style={{ color: "#faad14" }} /> : <BulbOutlined />}
-              onClick={toggleTheme}
-              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-            />
+            <Tooltip title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}>
+              <Button
+                type="text"
+                size="small"
+                icon={isDarkMode ? <BulbFilled style={{ color: "#faad14" }} /> : <BulbOutlined />}
+                onClick={toggleTheme}
+              />
+            </Tooltip>
           </Flex>
         </Header>
 
